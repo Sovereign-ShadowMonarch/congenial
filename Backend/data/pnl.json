@@ -1,0 +1,68 @@
+{
+  "assets": [
+    {
+      "asset": "BTC",
+      "cost_basis": 48500.0,
+      "current_price": 50000.0,
+      "amount": 1.5,
+      "value_usd": 75000.0,
+      "unrealized_pnl": 2250.0,
+      "unrealized_pnl_percent": 3.09,
+      "realized_pnl_ytd": 12500.0,
+      "realized_pnl_all_time": 28750.0
+    },
+    {
+      "asset": "ETH",
+      "cost_basis": 2450.0,
+      "current_price": 2400.0,
+      "amount": 15.0,
+      "value_usd": 36000.0,
+      "unrealized_pnl": -750.0,
+      "unrealized_pnl_percent": -2.04,
+      "realized_pnl_ytd": 4800.0,
+      "realized_pnl_all_time": 9600.0
+    },
+    {
+      "asset": "SOL",
+      "cost_basis": 115.0,
+      "current_price": 120.0,
+      "amount": 100.0,
+      "value_usd": 12000.0,
+      "unrealized_pnl": 500.0,
+      "unrealized_pnl_percent": 4.35,
+      "realized_pnl_ytd": 1800.0,
+      "realized_pnl_all_time": 3200.0
+    },
+    {
+      "asset": "LINK",
+      "cost_basis": 16.5,
+      "current_price": 17.0,
+      "amount": 500.0,
+      "value_usd": 8500.0,
+      "unrealized_pnl": 250.0,
+      "unrealized_pnl_percent": 3.03,
+      "realized_pnl_ytd": 950.0,
+      "realized_pnl_all_time": 2200.0
+    },
+    {
+      "asset": "ADA",
+      "cost_basis": 0.57,
+      "current_price": 0.56,
+      "amount": 10000.0,
+      "value_usd": 5600.0,
+      "unrealized_pnl": -100.0,
+      "unrealized_pnl_percent": -1.75,
+      "realized_pnl_ytd": 320.0,
+      "realized_pnl_all_time": 890.0
+    }
+  ],
+  "totals": {
+    "cost_basis_total": 134750.0,
+    "current_value_total": 137100.0,
+    "unrealized_pnl_total": 2150.0,
+    "unrealized_pnl_percent_total": 1.6,
+    "realized_pnl_ytd_total": 20370.0,
+    "realized_pnl_all_time_total": 44640.0
+  },
+  "generated_at": "2025-05-27T01:50:24.300518"
+}

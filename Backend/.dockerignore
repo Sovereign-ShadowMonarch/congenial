@@ -1,0 +1,8 @@
+.eggs
+.idea
+build
+frontend/app/build
+rotkehlchen.egg-info
+rotkehlchen_py_dist
+chromedriverlog.txt
+rotkehlchen.log

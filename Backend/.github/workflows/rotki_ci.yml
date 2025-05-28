@@ -1,0 +1,269 @@
+name: Rotki CI
+
+on:
+  pull_request:
+    branches:
+      - master
+      - develop
+      - bugfixes
+
+jobs:
+  check-changes:
+    strategy:
+      matrix:
+        os: [ ubuntu-18.04 ]
+        node-version: [ 12.x ]
+    runs-on: ${{ matrix.os }}
+    outputs:
+      backend_tasks: ${{ steps.checker.outputs.backend_tasks }}
+      frontend_tasks: ${{ steps.checker.outputs.frontend_tasks }}
+      documentation_tasks: ${{ steps.checker.outputs.documentation_tasks }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/job-checker
+        id: checker
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          documentation_paths: |
+            docs
+          backend_paths: |
+            rotkehlchen
+            requirements.txt
+            requirements_dev.txt
+            requirements_lint.txt
+          frontend_paths: |
+            frontend/app
+
+
+  check-frontend:
+    needs: ['check-changes']
+    if: ${{ needs.check-changes.outputs.frontend_tasks }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+        node-version: [12.x]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+      - name: Store npm cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/Cypress
+          key: ${{ runner.os }}-node--ci-${{ hashFiles('**/app/package-lock.json') }}
+      - name: Install dependencies
+        working-directory: ./frontend/app
+        run: |
+          if ! npm ci --exit-code; then
+            npm ci
+          fi
+      - name: Lint code
+        working-directory: ./frontend/app
+        run: npm run lint:check
+      - name: Lint style
+        working-directory: ./frontend/app
+        run: npm run lint:style
+      - name: Build
+        working-directory: ./frontend/app
+        run: npm run build
+      - name: Run unit tests
+        working-directory: ./frontend/app
+        run: npm run test:unit
+      - name: Upload coverage
+        working-directory: ./frontend/app
+        run: cd .. && bash <(curl -s https://codecov.io/bash) -F frontend_unit
+
+  docs:
+    needs: [ 'check-changes' ]
+    if: ${{ needs.check-changes.outputs.documentation_tasks }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+        python-version: [3.7]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.7'
+      - name: Install dependencies
+        run: |
+          pip install -r requirements_docs.txt
+          pip install -e .
+          git rev-parse HEAD
+      - name: Build html docs
+        run: cd docs && make html
+
+  lint-backend:
+    needs: ['check-changes']
+    if: ${{ needs.check-changes.outputs.backend_tasks }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+        python-version: [3.7]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.7'
+      - name: Install dependencies
+        run: |
+          pip install -r requirements_lint.txt
+          pip install -e .
+          git rev-parse HEAD
+      - name: Lint
+        run: make lint
+
+  test-backend:
+    if: ${{ needs.check-changes.outputs.backend_tasks }}
+    needs: ['lint-backend', 'check-changes']
+    timeout-minutes: 40
+    env:
+      CI: true
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+        python-version: [3.7]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup SQLCipher
+        run: |
+          sudo apt-get update
+          sudo apt-get install libxml2-utils
+          ./install_deps.sh
+          sudo ldconfig
+      - name: Set up python
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.7'
+      - name: Store python cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+      - name: Store test dir
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/.rotkehlchen-test-dir
+          key: ${{ runner.os }}-testdir-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-testdir-
+      - name: Install dependencies
+        run: |
+          pip install --upgrade "pip<19.0.0" wheel
+          pip install codecov pytest-cov
+          pip install -r requirements_dev.txt
+          pip install -e .
+      - name: Run Test
+        run: |
+          COVERAGE_ARGS='--cov=./'
+          python pytestgeventwrapper.py $COVERAGE_ARGS rotkehlchen/tests
+      - name: Upload coverage
+        run: bash <(curl -s https://codecov.io/bash) -F backend
+
+  test-e2e:
+    needs: [ 'check-changes' ]
+    if: |
+      contains(needs.check-changes.outputs.frontend_tasks, true) ||
+      contains(needs.check-changes.outputs.backend_tasks, true)
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+        python-version: [3.7]
+        node-version: [12.x]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up python
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.7'
+      - name: Store python cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/.rotkehlchen-test-dir
+          key: ${{ runner.os }}-pip-e2e-${{ hashFiles('**/requirements.txt') }}
+      - name: Store npm cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/Cypress
+          key: ${{ runner.os }}-node--e2e-${{ hashFiles('**/app/package-lock.json') }}
+      - name: Store frontend cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/rotki-e2e/price_history
+            ~/rotki-e2e/icons
+            ~/rotki-e2e/assets
+          key: ${{ runner.os }}-e2e-cache-${{ hashFiles('**/app/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-e2e-cache-
+      - name: Setup SQLCipher
+        run: |
+          sudo apt-get update
+          sudo apt-get install libxml2-utils
+          ./install_deps.sh
+          sudo ldconfig
+      - name: Setup backend
+        run: |
+          pip install -r requirements_dev.txt
+          pip install -e .
+      - name: Restore dependencies
+        working-directory: ./frontend/app
+        run: |
+          if ! npm ci --exit-code; then
+            npm ci
+          fi
+      - name: Run integration tests
+        working-directory: ./frontend/app
+        run: npm run test:integration-ci
+      - name: Upload coverage
+        working-directory: ./frontend/app
+        run: cd .. && bash <(curl -s https://codecov.io/bash) -F frontend_integration
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: screenshots-${{ runner.os }}
+          path: ./frontend/app/tests/e2e/screenshots
+      - name: Upload backend logs
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: backend-logs-${{ runner.os }}
+          path: ~/rotkehlchen-e2e.log
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: videos-${{ runner.os }}
+          path: ./frontend/app/tests/e2e/videos
+  done:
+    if: ${{ always() }}
+    needs: [ 'check-changes', 'check-frontend', 'docs', 'lint-backend', 'test-backend', 'test-e2e' ]
+    strategy:
+      matrix:
+        os: [ubuntu-18.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check if any task failed
+        run: |
+          data=($(echo "${{ toJSON(needs.*.result) }}" | sed 's/[][,]//g'))
+          for i in "${data[@]}"
+          do
+            if [[ $i == "failure" ]]; then
+                echo "::error::At least one required task failed"
+                exit 1;
+            fi
+          done

@@ -1,4 +1,0 @@
-User-agent: *
-Disallow: /iframe*
-
-Sitemap: https://mobula.fi/seo/sitemap.xml

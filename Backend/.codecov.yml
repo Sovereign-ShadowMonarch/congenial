@@ -1,0 +1,21 @@
+codecov:
+  require_ci_to_pass: true
+  notify:
+    wait_for_ci: true
+
+coverage:
+  status:
+    project: off
+    patch: off
+
+flags:
+  backend:
+    paths:
+      - rotkehlchen
+  frontend_unit:
+    paths:
+      - frontend/app
+  frontend_integration:
+    carryforward: true
+    paths:
+      - frontend/app

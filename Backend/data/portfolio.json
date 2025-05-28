@@ -1,0 +1,27 @@
+{
+  "assets": [
+    {
+      "symbol": "BTC",
+      "name": "Bitcoin",
+      "balance": 1.5,
+      "value_usd": 75000,
+      "pnl_24h": 2.5
+    },
+    {
+      "symbol": "ETH",
+      "name": "Ethereum",
+      "balance": 15,
+      "value_usd": 36000,
+      "pnl_24h": -1.2
+    },
+    {
+      "symbol": "SOL",
+      "name": "Solana",
+      "balance": 100,
+      "value_usd": 12000,
+      "pnl_24h": 5.8
+    }
+  ],
+  "total_value_usd": 123000,
+  "total_pnl_24h": 2.3
+}

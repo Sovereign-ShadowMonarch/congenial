@@ -1,0 +1,30 @@
+{
+  "status": "in_progress",
+  "progress": {
+    "ethereum": {
+      "blocks_processed": 15580000,
+      "blocks_total": 16500000,
+      "transactions_processed": 124568,
+      "percent_complete": 94.5
+    },
+    "bitcoin": {
+      "blocks_processed": 780000,
+      "blocks_total": 800000,
+      "transactions_processed": 4523,
+      "percent_complete": 97.5
+    },
+    "exchanges": {
+      "binance": {
+        "percent_complete": 100.0,
+        "last_sync": "2025-05-27T01:50:24.300384"
+      },
+      "kraken": {
+        "percent_complete": 100.0,
+        "last_sync": "2025-05-27T01:50:24.300387"
+      }
+    }
+  },
+  "eta_seconds": 1200,
+  "started_at": "2025-05-26T23:50:24.300388",
+  "last_updated": "2025-05-27T01:50:24.300392"
+}

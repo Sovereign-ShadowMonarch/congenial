@@ -1,0 +1,19 @@
+{
+  "users": [
+    {
+      "id": "user1",
+      "username": "demo_user",
+      "password": "demo",
+      "email": "",
+      "created_at": "2025-05-28T00:00:00",
+      "last_login": null,
+      "is_logged_in": false,
+      "settings": {
+        "darkMode": true,
+        "fiat": "USD",
+        "timezone": "UTC",
+        "notifications": true
+      }
+    }
+  ]
+}
