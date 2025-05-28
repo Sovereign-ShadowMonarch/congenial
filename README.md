@@ -1,4 +1,3 @@
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/obaldwin4/congenial-palm-tree)
 # Congenial Palm - Portfolio Tracker
 
 A comprehensive portfolio tracking, analytics, accounting, and tax reporting tool that respects your privacy. This application is split into two main components:
