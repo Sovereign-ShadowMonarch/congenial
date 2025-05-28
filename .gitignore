@@ -1,4 +1,5 @@
 # Node modules directories - exclude all node_modules everywhere
+node_modules
 node_modules/
 **/node_modules/
 **/.pnpm/
