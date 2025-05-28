@@ -1,59 +1,93 @@
-# 🚀 Web3 Starter Dashboard Template
+# Rotkehlchen Frontend
 
-Welcome to the Web3 Starter Dashboard Template! This template provides a powerful starting point for building your own web3 applications. It combines open-source libraries and frameworks to create a seamless development experience for building fast, secure, and stylish decentralized applications.
+A modern, responsive frontend for Rotkehlchen, a cryptocurrency portfolio management application. Built with Next.js and TypeScript, this frontend provides a comprehensive interface for tracking cryptocurrency assets, transactions, and DeFi investments.
 
 ## Features
 
-- 💻 NextJS: Fast server-rendered websites for optimal performance and SEO.
-- 🏗️ Hardhat: Ethereum-based smart contract development framework for seamless integration with the Ethereum blockchain.
-- 🎨 Tailwind CSS: Simple and intuitive styling framework for beautiful user interfaces.
-- 🌼 DaisyUI: Component library and themeing system for creating stunning UI designs effortlessly.
-- 💼 Wallet Connection: Seamless integration with RainbowKit for easy wallet connection, enabling users to interact with Ethereum securely.
-- ⚡️ Wagmi React Hooks: Powerful React hooks for Ethereum, making it easier to interact with Ethereum smart contracts.
+- **User Authentication**: Secure login, registration, and password management
+- **Dashboard**: Overview of portfolio performance, asset allocation, and recent activity
+- **Portfolio Tracking**: Detailed view of all assets with filtering and search capabilities
+- **Transaction Management**: Record and view trades, asset movements, and ledger actions
+- **Exchange Integration**: Connect to popular cryptocurrency exchanges via API keys
+- **Blockchain Account Management**: Track assets across multiple blockchains and addresses
+- **DeFi Protocol Support**: Monitor positions in protocols like MakerDAO, Aave, Compound, and more
+- **Asset Management**: Add custom tokens and manage asset visibility
+- **Theme Support**: Light and dark mode for user preference
 
-## Screenshots
+## Tech Stack
 
-### Light Theme
+- **Framework**: Next.js (React)
+- **Language**: TypeScript
+- **State Management**: React Query, Zustand
+- **Styling**: Tailwind CSS with DaisyUI components
+- **Form Handling**: React Hook Form with Zod validation
+- **API Client**: Axios with interceptors for authentication
+- **Charts**: Recharts for data visualization
 
-![Light Theme 1](screenshots/light.png)
-![White Theme 2](screenshots/light-wallet.png)
-![White Theme 2](screenshots/light-tp.png)
+## Project Structure
 
-### Dark Theme
-
-![Dark Theme 1](screenshots/dark.png)
-![Dark Theme 2](screenshots/dark-chain.png)
-
-### Alternative Themes
-
-![Theme 1](screenshots/lofi.png)
-![Theme 2](screenshots/cyber.png)
+```
+src/
+├── api/         # API clients for backend communication
+├── components/  # Reusable UI components
+├── context/     # React context for global state
+├── hooks/       # Custom React hooks
+├── pages/       # Page components and routing
+├── routes/      # Navigation configuration
+└── styles/      # Global CSS and Tailwind configuration
+```
 
 ## Getting Started
 
-To get started with the Web3 Starter Dashboard Template, follow these steps:
+### Prerequisites
 
-1. Clone this repository to your local machine.
-2. Install the necessary dependencies by running the command:
-   ```
-   npm install
-   ```
-3. Configure the required environment variables. Refer to the `.env.example` file for the necessary variables.
-4. Customize and build your application according to your project requirements.
-5. Start the development server using the command:
-   ```
-   npm run dev
-   ```
-6. Open your web browser and visit `http://localhost:3000` to see your web3 dashboard in action!
+- Node.js 16+
+- pnpm (recommended) or npm
+- Rotkehlchen Backend running (See backend documentation)
 
-## Contributing
+### Installation
 
-We welcome contributions to enhance and improve the Web3 Starter Dashboard Template. Feel free to open pull requests for bug fixes, new features, or improvements. Please refer to the [Contribution Guidelines](CONTRIBUTING.md) for more details.
+1. Clone the repository
+2. Install dependencies:
+
+```bash
+pnpm install
+# or
+npm install
+```
+
+3. Configure the environment variables:
+
+Create a `.env.local` file in the root directory with the following variables:
+
+```
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8081/api/1
+```
+
+4. Start the development server:
+
+```bash
+pnpm dev
+# or
+npm run dev
+```
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+## Integration with Backend
+
+This frontend is designed to work with the Rotkehlchen backend API. The backend should be running on `http://localhost:8081` with API endpoints available at `/api/1/`. The API client in `src/api/client.ts` is configured to communicate with the backend and handle authentication.
+
+## Building for Production
+
+```bash
+pnpm build
+# or
+npm run build
+```
+
+The build output will be in the `.next` directory, which can be deployed to any static hosting service or served with a Node.js server.
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
-
----
-
-We hope this Web3 Starter Dashboard Template empowers you to create amazing decentralized applications! Feel free to customize and modify it to suit your specific needs. If you encounter any issues or have any questions, don't hesitate to reach out. Happy building! 🎉
+This project is licensed under the MIT License.
