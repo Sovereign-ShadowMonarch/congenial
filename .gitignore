@@ -3,7 +3,9 @@ node_modules
 node_modules/
 **/node_modules/
 **/.pnpm/
+# Explicitly exclude all Next.js SWC binary files
 **/next-swc*.node
+**/@next/swc-*/**/*.node
 
 # Logs
 npm-debug.log*
