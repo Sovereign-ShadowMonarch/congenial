@@ -12,7 +12,7 @@ The Backend directory contains **a Python-based service that handles data proces
 
 ## Technical Architecture
 
-The backend operates as a **Flask-based service that provides a comprehensive REST API** [5](#1-4)  for portfolio tracking and analysis. The main entry point **starts a RotkehlchenServer** [6](#1-5)  which **creates an APIServer with RestAPI functionality** [7](#1-6) .
+The backend operates as a **Flask-based service that provides a comprehensive REST API**   for portfolio tracking and analysis. The main entry point **starts a RotkehlchenServer**   which **creates an APIServer with RestAPI functionality**  .
 
 ## Key Features
 
