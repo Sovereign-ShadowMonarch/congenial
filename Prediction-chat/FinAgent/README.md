@@ -1,4 +1,4 @@
-# Financial-agent-with-phidata
+# Financial-agent
 
 This project is a multi-agent system designed to provide financial analysis and web search capabilities using the `phidata` library. The system consists of two primary agents: a **Web Search Agent** and a **Financial Agent**, which work together to provide comprehensive financial insights and market news.
 
@@ -9,10 +9,6 @@ This project is a multi-agent system designed to provide financial analysis and 
 - **Multi-Agent System**: Combines the capabilities of both agents to provide a comprehensive analysis of financial data and market news.
 
 ## Installation
-
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/yourusername/financial-agent-with-phidata.git
    cd financial-agent-with-phidata
    ```
 

@@ -1,128 +1,158 @@
-# Congenial Palm - Portfolio Tracker
+# Crypto Portfolio Management & Analysis Platform
 
-A comprehensive portfolio tracking, analytics, accounting, and tax reporting tool that respects your privacy. This application is split into two main components:
+## Overview
 
-1. **Backend**: A Python-based service that handles data processing, storage, and API endpoints
-2. **Frontend**: A Next.js web application that provides a modern user interface
+This project is an end-to-end solution for cryptocurrency portfolio management, technical analysis, market prediction, and paper trading. It combines multiple technologies to provide users with tools for tracking their crypto assets, analyzing market trends, making informed investment decisions, and practicing trading strategies without real financial risk.
 
-## System Requirements
+## Project Components
 
-- Python 3.9 or 3.10 (recommended for backend compatibility)
-- Node.js 18+ and npm
-- SQLCipher installed on your system
+### Backend
 
-## Backend Setup
+The core API server built with Flask that handles:
 
-The backend is built using Flask and provides a comprehensive REST API for portfolio tracking and analysis.
+- User authentication and account management
+- Portfolio tracking across multiple blockchains and exchanges
+- Transaction history and financial reporting
+- Real-time data updates via WebSockets
+- Performance metrics and P&L calculations
 
-### Installing Dependencies
+**Key Features:**
+- Multi-blockchain wallet integration
+- Exchange API connectivity
+- Transaction history tracking
+- Portfolio performance analytics
+- Real-time updates via WebSockets
 
-1. Install SQLCipher (required for secure database encryption):
+**Tech Stack:**
+- Python with Flask
+- Flask-SocketIO for real-time communication
+- RESTful API design
+- JSON-based data storage
+
+### Frontend
+
+A modern web interface built with Next.js and React that provides:
+
+- Intuitive portfolio dashboard
+- Asset allocation visualization
+- Transaction history
+- Exchange and wallet management
+- Performance charts and statistics
+
+**Tech Stack:**
+- Next.js framework
+- TypeScript
+- Tailwind CSS for styling
+
+### ML Models
+
+Machine learning models for financial risk assessment:
+
+- Value at Risk (VaR) calculations
+- Risk metrics for portfolio management
+
+**Tech Stack:**
+- Python with Jupyter notebooks
+- Data analysis libraries (pandas, numpy)
+
+### Prediction-chat (FinAgent)
+
+AI-powered financial analysis and prediction tool that provides:
+
+- Technical analysis of cryptocurrencies (moving averages, RSI, etc.)
+- Buy/sell signals based on technical indicators
+- Web search for latest market insights and expert opinions
+- Comprehensive market analysis for crypto assets
+
+**Key Features:**
+- Multi-agent architecture combining financial tools with web search
+- Technical indicator calculations
+- Expert recommendations retrieval
+- Customized analysis for cryptocurrencies
+
+**Tech Stack:**
+- Python
+- OpenAI GPT models via phi library
+- yfinance for financial data
+- DuckDuckGo search integration
+
+### Paper Trading
+
+Simulated trading platform for practicing investment strategies without financial risk:
+
+- Virtual portfolio management
+- Mock trading with real-time market data
+- Performance tracking and analysis
+
+## Getting Started
+
+### Prerequisites
+
+- Docker and Docker Compose (for container deployment)
+- Node.js and npm/yarn (for frontend development)
+- Python 3.9+ (for backend and AI components)
+
+### Setup Instructions
+
+1. **Clone the repository**
+
+2. **Start the Backend and Services with Docker**
 
    ```bash
-   # macOS
-   brew install sqlcipher
-   
-   # Ubuntu/Debian
-   sudo apt-get install libsqlcipher-dev
-   
-   # Windows
-   # Download from https://www.zetetic.net/sqlcipher/open-source/
+   docker-compose up -d
    ```
 
-2. Create a Python virtual environment and install dependencies:
+3. **Setup the Frontend**
 
    ```bash
-   cd Backend
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   
-   # Upgrade pip
-   pip install --upgrade pip
-   
-   # Install the required dependencies
-   SQLCIPHER_PATH=/opt/homebrew/opt/sqlcipher pip install -r requirements.txt
+   cd frontend
+   npm install
+   npm run dev
    ```
 
-### Running the Backend
+4. **Setup the Prediction Agent**
 
-Once all dependencies are installed, you can run the backend server:
+   ```bash
+   cd Prediction-chat/FinAgent
+   pip install -r requirements.txt
+   # Set up your OpenAI API key in a .env file
+   python main.py
+   ```
 
-```bash
-cd Backend
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-python -m rotkehlchen
-```
+5. **Access Paper Trading**
 
-The API will be available at `http://localhost:5042/api/1/`.
+   Follow instructions in `Paper_Trading/PaperTrader/RUNNING_INSTRUCTIONS.md`
 
-## Frontend Setup
+## Architecture
 
-The frontend is built using Next.js 14 with TypeScript, Tailwind CSS, and integrates with the backend API.
+The platform follows a microservices architecture with the following components:
 
-### Installing Dependencies
+- Backend API server provides core financial data and portfolio management
+- Frontend delivers the user interface and visualization
+- ML Models perform risk calculations and predictions
+- FinAgent provides AI-driven market analysis and recommendations
+- Paper Trading enables practice without financial risk
 
-```bash
-cd Frontend
-npm install
-```
+## API Documentation
 
-### Running the Frontend
+The Backend provides a comprehensive API for all portfolio management functions:
 
-Once all dependencies are installed, you can run the development server:
+- `/api/version` - Get API version information
+- `/api/portfolio` - Get portfolio data
+- `/api/users` - User management endpoints
+- `/api/blockchains` - Blockchain wallet management
+- `/api/exchanges` - Exchange API management
+- `/api/balances` - Portfolio balance endpoints
+- `/api/pnl` - Profit and loss reporting
+- `/api/transactions` - Transaction history
+- `/api/statistics` - Performance metrics
 
-```bash
-cd Frontend
-npm run dev
-```
+Detailed API documentation available in the Backend README.
 
-The frontend will be available at `http://localhost:3000`.
+## Contributing
 
-## Features
-
-- **User Authentication and Management**: Create and manage user accounts with secure password-based encryption
-- **Blockchain Integration**: Track balances and transactions across multiple blockchains (Ethereum, Bitcoin, and more)
-- **Exchange API Integration**: Connect to cryptocurrency exchanges to fetch balances and trading history
-- **DeFi Protocol Integration**: Track positions in DeFi protocols like Aave, Compound, Uniswap, etc.
-- **Asset Price Tracking**: Track real-time and historical prices of cryptocurrencies and other assets
-- **Risk Analysis**: View Value at Risk (VaR) and other risk metrics for your portfolio
-- **Accounting and Tax Reporting**: Generate tax reports and track capital gains/losses
-
-## Development
-
-### Testing
-
-To run frontend tests:
-
-```bash
-cd Frontend
-npm test
-```
-
-To run backend tests:
-
-```bash
-cd Backend
-source venv/bin/activate
-pytest
-```
-
-## Troubleshooting
-
-### Backend Issues
-
-- **SQLCipher Installation**: If you encounter issues with pysqlcipher3 installation, make sure that SQLCipher is properly installed on your system and the correct path is provided.
-- **Python Version**: This backend is optimized for Python 3.9 or 3.10. If you're using a different version, you might encounter compatibility issues.
-
-### Frontend Issues
-
-- **Node Version**: Make sure you're using Node.js 18 or later.
-- **API Connection**: Ensure the backend API is running and the `.env.local` file has the correct API URL.
-
-## Security
-
-All data is stored encrypted locally on your device. API keys and other sensitive information are securely encrypted using industry-standard encryption.
+Contribution guidelines are available in `Backend/CONTRIBUTING.md`
 
 ## License
 
-This project is licensed under the BSD-3 License. See the LICENSE file for details.
+This project is proprietary software. All rights reserved.
