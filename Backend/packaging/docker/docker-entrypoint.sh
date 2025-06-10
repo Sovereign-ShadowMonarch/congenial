@@ -7,7 +7,7 @@ log() {
 
 set -e
 
-log "Starting Rotkehlchen backend container..."
+log "Starting Backend container..."
 
 # Default values
 DEFAULT_API_HOST="0.0.0.0"
@@ -38,7 +38,7 @@ CMD_ARGS=(
     "--api-cors" "$CORS_ORIGIN"
 )
 
-log "Starting Rotkehlchen with arguments: ${CMD_ARGS[*]}"
+log "Starting Backend with arguments: ${CMD_ARGS[*]}"
 
 # Find and execute the PyInstaller-built application
 # The executable name pattern should match what's defined in rotkehlchen.spec (e.g., backend-*-linux)

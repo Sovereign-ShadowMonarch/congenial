@@ -97,6 +97,10 @@ EXPOSE 4242
 # Define volumes for persistent data and logs
 VOLUME ["/data", "/logs"]
 
+# Configure healthcheck using the correct API endpoint path
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl --fail http://localhost:4242/api/1/version || exit 1
+
 # Define the entrypoint
 ENTRYPOINT ["/opt/backend/docker-entrypoint.sh"]
 # CMD is often part of the entrypoint script or passed to it.
