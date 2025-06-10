@@ -11,8 +11,9 @@ import {
 } from 'recharts';
 
 interface PerformanceChartProps {
-  data: Array<{ time: number; value: number }>;
+  data?: Array<{ time: number; value: number }>;
   isLoading?: boolean;
+  timeRange?: string;
 }
 
 type TimeRange = '1W' | '1M' | '3M' | '1Y' | 'ALL';
