@@ -1,4 +1,4 @@
-Rotki API
+Backend API
 ##################################################
 .. toctree::
   :maxdepth: 2
@@ -7,7 +7,7 @@ Rotki API
 Introduction
 *************
 
-When the Rotki backend runs it exposes an HTTP Rest API that is accessed by either the electron front-end or a web browser. The endpoints accept and return JSON encoded objects. All queries have the following prefix: ``/api/<version>/`` where ``version`` is the current version. The current version at the moment is ``1``.
+When the backend backend runs it exposes an HTTP Rest API that is accessed by either the electron front-end or a web browser. The endpoints accept and return JSON encoded objects. All queries have the following prefix: ``/api/<version>/`` where ``version`` is the current version. The current version at the moment is ``1``.
 
 
 Request parameters
@@ -54,7 +54,7 @@ The consumer of the API can later query the `ongoing backend task endpoint <#que
 Endpoints
 ***********
 
-In this section we will see the information about the individual endpoints of the API and detailed explanation of how each one can be used to interact with Rotki.
+In this section we will see the information about the individual endpoints of the API and detailed explanation of how each one can be used to interact with backend.
 
 Handling user creation, sign-in, log-out and querying
 =======================================================
@@ -85,7 +85,7 @@ Handling user creation, sign-in, log-out and querying
 
    :resjson object result: The result of the users query. Each element has a username as a key and either ``"loggedin"`` or ``"loggedout"`` values
    :statuscode 200: Users query is succesful
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 .. http:put:: /api/(version)/users
 
@@ -111,8 +111,8 @@ Handling user creation, sign-in, log-out and querying
 
    :reqjson string name: The name to give to the new user
    :reqjson string password: The password with which to encrypt the database for the new user
-   :reqjson string[optional] premium_api_key: An optional api key if the user has a Rotki premium account.
-   :reqjson string[optional] premium_api_secret: An optional api secret if the user has a Rotki premium account.
+   :reqjson string[optional] premium_api_key: An optional api key if the user has a backend premium account.
+   :reqjson string[optional] premium_api_secret: An optional api secret if the user has a backend premium account.
    :reqjson object[optional] initial_settings: Optionally provide DB settings to set when creating the new user. If not provided, default settings are used.
 
    **Example Response**:
@@ -156,8 +156,8 @@ Handling user creation, sign-in, log-out and querying
    :resjson object result: For succesful requests, result contains the currently connected exchanges, and the user's settings. For details on the user settings refer to the `Getting or modifying settings`_ section.
    :statuscode 200: Adding the new user was succesful
    :statuscode 400: Provided JSON is in some way malformed
-   :statuscode 409: User already exists. Another user is already logged in. Given Premium API credentials are invalid. Permission error while trying to access the directory where Rotki saves data.
-   :statuscode 500: Internal Rotki error
+   :statuscode 409: User already exists. Another user is already logged in. Given Premium API credentials are invalid. Permission error while trying to access the directory where backend saves data.
+   :statuscode 500: Internal backend error
 
 .. http:patch:: /api/(version)/users/(username)
 
@@ -223,8 +223,8 @@ Handling user creation, sign-in, log-out and querying
    :statuscode 300: Possibility of syncing exists and the login was sent with sync_approval set to ``"unknown"``. Consumer of api must resend with ``"yes"`` or ``"no"``. In this case the result will contain an object with a payload for the message under the ``result`` key and the message under the ``message`` key. The payload has the following keys: ``local_size``, ``remote_size``, ``local_last_modified``, ``remote_last_modified``.
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 401: Provided password is wrong for the user or some other authentication error.
-   :statuscode 409: Another user is already logged in. User does not exist. There was a fatal error during the upgrade of the DB. Permission error while trying to access the directory where Rotki saves data.
-   :statuscode 500: Internal Rotki error
+   :statuscode 409: Another user is already logged in. User does not exist. There was a fatal error during the upgrade of the DB. Permission error while trying to access the directory where backend saves data.
+   :statuscode 500: Internal backend error
 
 .. http:patch:: /api/(version)/users/(username)
 
@@ -259,7 +259,7 @@ Handling user creation, sign-in, log-out and querying
    :statuscode 200: Logged out succesfully
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 409: No user is logged in, or current logged in user is different to the one requested for logout.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 
 .. http:patch:: /api/(version)/users/(username)
@@ -278,8 +278,8 @@ Handling user creation, sign-in, log-out and querying
           "premium_api_secret": "fdfdsgsdmf"
       }
 
-   :reqjson string premium_api_key: The new api key to set for Rotki premium
-   :reqjson string premium_api_secret: The new api secret to set for Rotki premium
+   :reqjson string premium_api_key: The new api key to set for backend premium
+   :reqjson string premium_api_secret: The new api secret to set for backend premium
 
    **Example Response**:
 
@@ -298,7 +298,7 @@ Handling user creation, sign-in, log-out and querying
    :statuscode 400: Provided JSON is in some way malformed. For example invalid API key format
    :statuscode 401: Provided API key/secret does not authenticate.
    :statuscode 409: User is not logged in, or user does not exist
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 .. http:delete:: /api/(version)/premium
 
@@ -327,7 +327,7 @@ Handling user creation, sign-in, log-out and querying
    :statuscode 200: API key/secret deleted succesfully
    :statuscode 400: Provided call is in some way malformed.
    :statuscode 409: User is not logged in, or user does not exist, or db operation error
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 .. http:put:: /api/(version)/premium/sync
 
@@ -365,7 +365,7 @@ Handling user creation, sign-in, log-out and querying
    :statuscode 200: API key/secret deleted successfully
    :statuscode 400: Provided call is in some way malformed.
    :statuscode 401: The user does not have premium access.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
    :statuscode 502: The external premium service could not be reached or returned unexpected response.
 
 Modify user password
@@ -404,7 +404,7 @@ Modify user password
    :statuscode 401: Password mismatch
    :statuscode 400: Provided call is in some way malformed. For example a user who is not logged in has been specified.
    :statuscode 409: User is not logged in, or user does not exist, or db operation error
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Getting or modifying external services API credentials
 =======================================================
@@ -443,7 +443,7 @@ Getting or modifying external services API credentials
    :resjson object result: The result object contains as many entries as the external services. Each entry's key is the name and the value is another object of the form ``{"api_key": "foo"}``
    :statuscode 200: Querying of external service credentials was succesful
    :statuscode 409: There is no logged in user
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 .. http:put:: /api/(version)/external_services
 
@@ -488,7 +488,7 @@ Getting or modifying external services API credentials
    :statuscode 200: Saving new external service credentials was succesful
    :statuscode 400: Provided JSON is in some way malformed, of invalid value provided.
    :statuscode 409: There is no logged in user
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 .. http:delete:: /api/(version)/external_services
 
@@ -532,7 +532,7 @@ Getting or modifying external services API credentials
    :statuscode 200: Deleting external service credentials was succesful
    :statuscode 400: Provided JSON is in some way malformed, of invalid value provided.
    :statuscode 409: There is no logged in user
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Getting or modifying settings
 ==============================
@@ -602,16 +602,16 @@ Getting or modifying settings
    :resjson string main_currency: The asset to use for all profit/loss calculation. USD by default.
    :resjson string date_display_format: The format in which to display dates in the UI. Default is ``"%d/%m/%Y %H:%M:%S %Z"``.
    :resjson int last_balance_save: The timestamp at which the balances were last saved in the database.
-   :resjson bool submit_usage_analytics: A boolean denoting wether or not to submit anonymous usage analytics to the Rotki server.
+   :resjson bool submit_usage_analytics: A boolean denoting wether or not to submit anonymous usage analytics to the backend server.
    :resjson string kraken_account_type: The type of the user's kraken account if he has one. Valid values are "starter", "intermediate" and "pro".
-   :resjson list active_module: A list of strings denoting the active modules with which Rotki is running.
-   :resjson list current_price_oracles: A list of strings denoting the price oracles rotki should query in specific order for requesting current prices.
-   :resjson list historical_price_oracles: A list of strings denoting the price oracles rotki should query in specific order for requesting historical prices.
+   :resjson list active_module: A list of strings denoting the active modules with which backend is running.
+   :resjson list current_price_oracles: A list of strings denoting the price oracles backend should query in specific order for requesting current prices.
+   :resjson list historical_price_oracles: A list of strings denoting the price oracles backend should query in specific order for requesting historical prices.
    :resjson list taxable_ledger_actions: A list of strings denoting the ledger action types that will be taken into account in the profit/loss calculation during accounting. All others will only be taken into account in the cost basis and will not be taxed.
 
    :statuscode 200: Querying of settings was succesful
    :statuscode 409: There is no logged in user
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 .. http:put:: /api/(version)/settings
 
@@ -643,10 +643,10 @@ Getting or modifying settings
    :reqjson string[optional] ksm_rpc_endpoint: A URL denoting the rpc endpoint for the Kusama node to use when contacting the Kusama blockchain. If it can not be reached or if it is invalid any default public node (e.g. Parity) is used instead.
    :reqjson string[optional] main_currency: The FIAT currency to use for all profit/loss calculation. USD by default.
    :reqjson string[optional] date_display_format: The format in which to display dates in the UI. Default is ``"%d/%m/%Y %H:%M:%S %Z"``.
-   :reqjson bool[optional] submit_usage_analytics: A boolean denoting wether or not to submit anonymous usage analytics to the Rotki server.
-   :reqjson list active_module: A list of strings denoting the active modules with which Rotki should run.
-   :reqjson list current_price_oracles: A list of strings denoting the price oracles rotki should query in specific order for requesting current prices.
-   :reqjson list historical_price_oracles: A list of strings denoting the price oracles rotki should query in specific order for requesting historical prices.
+   :reqjson bool[optional] submit_usage_analytics: A boolean denoting wether or not to submit anonymous usage analytics to the backend server.
+   :reqjson list active_module: A list of strings denoting the active modules with which backend should run.
+   :reqjson list current_price_oracles: A list of strings denoting the price oracles backend should query in specific order for requesting current prices.
+   :reqjson list historical_price_oracles: A list of strings denoting the price oracles backend should query in specific order for requesting historical prices.
    :reqjson list taxable_ledger_actions: A list of strings denoting the ledger action types that will be taken into account in the profit/loss calculation during accounting. All others will only be taken into account in the cost basis and will not be taxed.
 
    **Example Response**:
@@ -689,7 +689,7 @@ Getting or modifying settings
    :statuscode 200: Modifying settings was succesful
    :statuscode 400: Provided JSON is in some way malformed, of invalid value for a setting.
    :statuscode 409: No user is logged in or tried to set eth rpc endpoint that could not be reached.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Query the result of an ongoing backend task
 ===========================================
@@ -725,7 +725,7 @@ Query the result of an ongoing backend task
    :resjson list result: A mapping of "pending" to a list of pending task ids, and of "completed" to completed task ids.
 
    :statuscode 200: Querying was succesful
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 .. http:get:: /api/(version)/tasks/(task_id)
 
@@ -804,7 +804,7 @@ Query the result of an ongoing backend task
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 404: There is no task with the given task id
    :statuscode 409: No user is currently logged in
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Query the current price of assets
 ===================================
@@ -861,7 +861,7 @@ Query the current price of assets
    :resjson string target_asset: The target asset against which to return the price of each asset in the list.
    :statuscode 200: The USD prices have been sucesfully returned
    :statuscode 400: Provided JSON is in some way malformed.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
    :statuscode 502: An external service used in the query such as cryptocompare/coingecko could not be reached or returned unexpected response.
 
 Query the current exchange rate for select assets
@@ -901,7 +901,7 @@ Query the current exchange rate for select assets
    :resjson object result: A JSON object with each element being an asset symbol and each value its USD exchange rate.
    :statuscode 200: The exchange rates have been sucesfully returned
    :statuscode 400: Provided JSON is in some way malformed. Empty currencies list given
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
    :statuscode 502: An external service used in the query such as cryptocompare/coingecko could not be reached or returned unexpected response.
 
 Query the historical price of assets
@@ -960,7 +960,7 @@ Query the historical price of assets
    :resjson string target_asset: The target asset against which to return the price of each asset in the list.
    :statuscode 200: The historical USD prices have been sucesfully returned
    :statuscode 400: Provided JSON is in some way malformed.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
    :statuscode 502: An external service used in the query such as cryptocompare/coingecko could not be reached or returned unexpected response.
 
 Get a list of setup exchanges
@@ -992,7 +992,7 @@ Get a list of setup exchanges
    :resjson list result: A list of exchange names that have been setup for the logged in user.
    :statuscode 200: The exchanges list has been sucesfully setup
    :statuscode 409: No user is logged in.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Setup or remove an exchange
 ============================
@@ -1031,7 +1031,7 @@ Setup or remove an exchange
    :statuscode 200: The exchange has been sucesfully setup
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 409: No user is logged in. The exchange has already been registered. The API key/secret is invalid or some other error.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 .. http:delete:: /api/(version)/exchanges
 
@@ -1064,7 +1064,7 @@ Setup or remove an exchange
    :statuscode 200: The exchange has been sucesfully deleted
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 409: No user is logged in. The exchange is not registered or some other error
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Querying the balances of exchanges
 ====================================
@@ -1110,7 +1110,7 @@ Querying the balances of exchanges
    :statuscode 200: Balances succesfully queried.
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 409: User is not logged in.Exchange is not registered or some other exchange query error. Check error message for details.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 .. http:get:: /api/(version)/exchanges/balances/
 
@@ -1155,7 +1155,7 @@ Querying the balances of exchanges
    :statuscode 200: Balances succesfully queried.
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 409: User is not logged in. Some exchange query error. Check error message for details.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 
 Purging locally saved data for exchanges
@@ -1188,7 +1188,7 @@ Purging locally saved data for exchanges
    :statuscode 200: Data succesfully purged.
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 409: User is not logged in. Exchange is not registered or some other error. Check error message for details.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Purging locally saved ethereum transactions
 ===========================================
@@ -1219,7 +1219,7 @@ Purging locally saved ethereum transactions
    :statuscode 200: Data succesfully purged.
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 409: User is not logged in or some other error. Check error message for details.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 
 Purging locally saved data for ethereum modules
@@ -1253,7 +1253,7 @@ Purging locally saved data for ethereum modules
    :statuscode 200: Data succesfully purged.
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 409: User is not logged in or some other error. Check error message for details.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 
 Request creation of oracle price cache
@@ -1293,7 +1293,7 @@ Request creation of oracle price cache
    :statuscode 200: Cache succesfully created.
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 409: User is not logged in or some other error. Check error message for details.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
    :statuscode 502: The oracle could not be queried due to an error on their side.
 
 Delete an oracle price cache
@@ -1329,7 +1329,7 @@ Delete an oracle price cache
    :statuscode 200: Cache succesfully delete.
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 409: User is not logged in or some other error. Check error message for details.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Get oracle price cache data
 =============================
@@ -1384,7 +1384,7 @@ Get oracle price cache data
    :statuscode 200: Cache succesfully delete.
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 409: User is not logged in or some other error. Check error message for details.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Get supported oracles
 =======================
@@ -1434,7 +1434,7 @@ Get supported oracles
    :resjson object result: A mapping of all supported current and historical oracles
 
    :statuscode 200: Oracles succesfully queried
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Query supported ethereum modules
 =====================================
@@ -1476,7 +1476,7 @@ Query supported ethereum modules
 
    :statuscode 200: Data succesfully purged.
    :statuscode 409: User is not logged in or some other error. Check error message for details.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Querying ethereum transactions
 =================================
@@ -1552,7 +1552,7 @@ Querying ethereum transactions
    :statuscode 200: Transactions succesfull queried
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 409: User is not logged in or some other error. Check error message for details.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
    :statuscode 502: An external service used in the query such as etherscan could not be reached or returned unexpected response.
 
 Querying tags
@@ -1604,7 +1604,7 @@ Querying tags
 
    :statuscode 200: Tags succesfully queried.
    :statuscode 409: User is not logged in.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Adding new tags
 ===================
@@ -1665,12 +1665,12 @@ Adding new tags
           "message": ""
       }
 
-   :reqjson object result: A mapping of the tags Rotki knows about including our newly added tag. Explanation of the response format is seen `here <tags_response_>`_
+   :reqjson object result: A mapping of the tags backend knows about including our newly added tag. Explanation of the response format is seen `here <tags_response_>`_
 
    :statuscode 200: Tag successfully created.
    :statuscode 400: Provided request JSON is in some way malformed.
    :statuscode 409: User is not logged in. Tag with the same name already exists.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Editing a tag
 ==============
@@ -1731,12 +1731,12 @@ Editing a tag
           "message": ""
       }
 
-   :reqjson object result: A mapping of the tags Rotki knows about including our newley edited tag. Explanation of the response format is seen `here <tags_response_>`_
+   :reqjson object result: A mapping of the tags backend knows about including our newley edited tag. Explanation of the response format is seen `here <tags_response_>`_
 
    :statuscode 200: Tag successfully created.
    :statuscode 400: Provided request JSON is in some way malformed. Or no field to edit was given.
    :statuscode 409: User is not logged in. Tag with the given name does not exist.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Deleting a tag
 ==============
@@ -1785,12 +1785,12 @@ Deleting a tag
           "message": ""
       }
 
-   :reqjson list result: A mapping of the tags Rotki knows about, now without the tag we just deleted. Explanation of the response format is seen `here <tags_response_>`_
+   :reqjson list result: A mapping of the tags backend knows about, now without the tag we just deleted. Explanation of the response format is seen `here <tags_response_>`_
 
    :statuscode 200: Tag successfully removed.
    :statuscode 400: Provided request JSON is in some way malformed.
    :statuscode 409: User is not logged in. Tag with the given name does not exist.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Querying onchain balances
 ==========================
@@ -1888,7 +1888,7 @@ Querying onchain balances
    :statuscode 200: Balances succesfully queried.
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 409: User is not logged in. Invalid blockchain, or problems querying the given blockchain
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
    :statuscode 502: An external service used in the query such as etherscan or blockchain.info could not be reached or returned unexpected response.
 
 Querying all balances
@@ -1981,7 +1981,7 @@ Querying all balances
    :statuscode 200: Balances succesfully queried.
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 409: User is not logged in.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Querying all supported assets
 ================================
@@ -1992,7 +1992,7 @@ Querying all supported assets
 
 The details of each asset can contain the following keys:
 
-- **type**: The type of asset. Valid values are ethereum token, own chain, omni token and more. For all valid values check here: https://github.com/rotki/rotki/blob/develop/rotkehlchen/assets/resolver.py#L7
+- **type**: The type of asset. Valid values are ethereum token, own chain, omni token and more. For all valid values check here: https://github.com/backend/backend/blob/develop/rotkehlchen/assets/resolver.py#L7
 - **started**: An optional unix timestamp denoting where we know price data for the asset started
 - **ended**: If an asset is no longer in circulation this value should denote the unix timestamp after which price data is no longer available
 - **name**: The long name of the asset. Does not need to be the same as the unique symbol identifier
@@ -2072,7 +2072,7 @@ The details of each asset can contain the following keys:
 
    :resjson object result: A mapping of asset symbol identifiers to asset details
    :statuscode 200: Assets succesfully queried.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Querying owned assets
 ======================
@@ -2106,7 +2106,7 @@ Querying owned assets
    :statuscode 200: Assets succesfully queried.
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 409: No user is currently logged in.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Getting custom ethereum tokens
 ==================================
@@ -2168,14 +2168,14 @@ Getting custom ethereum tokens
    :statuscode 200: Assets succesfully queried.
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 404: Queried by address and no token was found.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Adding custom ethereum tokens
 ==================================
 
 .. http:put:: /api/(version)/assets/ethereum
 
-   Doing a PUT on the ethereum assets endpoint will allow you to add a new ethereum token in the global rotki DB. Returns the asset identifier of the new custom token. For ethereum ones it's ``_ceth_0xADDRESS``
+   Doing a PUT on the ethereum assets endpoint will allow you to add a new ethereum token in the global backend DB. Returns the asset identifier of the new custom token. For ethereum ones it's ``_ceth_0xADDRESS``
 
    **Example Request**:
 
@@ -2218,14 +2218,14 @@ Adding custom ethereum tokens
    :statuscode 200: Asset succesfully addedd.
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 409: Some conflict at addition. For example token address is already in the DB.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Editing custom ethereum tokens
 ==================================
 
 .. http:patch:: /api/(version)/assets/ethereum
 
-   Doing a PATCH on the ethereum assets endpoint will allow you to edit an existing ethereum token in the global rotki DB. Returns the asset identifier of the edited token for success.
+   Doing a PATCH on the ethereum assets endpoint will allow you to edit an existing ethereum token in the global backend DB. Returns the asset identifier of the edited token for success.
 
    **Example Request**:
 
@@ -2264,14 +2264,14 @@ Editing custom ethereum tokens
    :statuscode 200: Asset succesfully edited.
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 409: Some conflict at editing. For example token address does not exist in the DB.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Deleting custom ethereum tokens
 ==================================
 
 .. http:delete:: /api/(version)/assets/ethereum
 
-   Doing a DELETE on the ethereum assets endpoint will allow you to delete an existing ethereum token from the global rotki DB.
+   Doing a DELETE on the ethereum assets endpoint will allow you to delete an existing ethereum token from the global backend DB.
 
    **Example Request**:
 
@@ -2301,7 +2301,7 @@ Deleting custom ethereum tokens
    :statuscode 200: Asset succesfully deleted.
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 409: Some conflict at deleting. For example token address does not exist in the DB.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Querying asset icons
 ======================
@@ -2333,7 +2333,7 @@ Querying asset icons
    :statuscode 304: Icon data has not changed. Should be cached on the client. This is returned if the given If-Match or If-None-Match header match the etag of the previous response.
    :statuscode 400: Provided JSON is in some way malformed. Either unknown asset or invalid size.
    :statuscode 404: We have no icon for that asset
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 
 Uploading custom asset icons
@@ -2342,7 +2342,7 @@ Uploading custom asset icons
 .. http:put:: /api/(version)/assets/(identifier)/icon
 .. http:post:: /api/(version)/assets/(identifier)/icon
 
-   Doing either a PUT or a POST on the asset icon endpoint with appropriate arguments will upload a custom icon for an asset. That icon will take precedence over what rotki already knows for the asset if anything.
+   Doing either a PUT or a POST on the asset icon endpoint with appropriate arguments will upload a custom icon for an asset. That icon will take precedence over what backend already knows for the asset if anything.
 
 
    **Example Request**:
@@ -2367,7 +2367,7 @@ Uploading custom asset icons
 
 
    :statuscode 200: Icon succesfully uploaded
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 
 Statistics for netvalue over time
@@ -2408,7 +2408,7 @@ Statistics for netvalue over time
    :statuscode 200: Netvalue statistics succesfuly queried.
    :statuscode 400: Provided JSON is in some way malformed.
    :statuscode 409: No user is currently logged in or currently logged in user does not have a premium subscription.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
 
 Statistics for asset balance over time
 ======================================
@@ -2466,7 +2466,7 @@ Statistics for asset balance over time
    :statuscode 200: Single asset balance statistics succesfuly queried
    :statuscode 400: Provided JSON is in some way malformed or data is invalid.
    :statuscode 409: No user is currently logged in or currently logged in user does not have a premium subscription.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Statistics for value distribution
 ==================================
@@ -2522,7 +2522,7 @@ Statistics for value distribution
    :statuscode 200: Value distribution succesfully queried.
    :statuscode 400: Provided JSON is in some way malformed or data is invalid.
    :statuscode 409: No user is currently logged in or currently logged in user does not have a premium subscription.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
 
 .. http:get:: /api/(version)/statistics/value_distribution/
 
@@ -2575,7 +2575,7 @@ Statistics for value distribution
    :statuscode 200: Value distribution succesfully queried.
    :statuscode 400: Provided JSON is in some way malformed or data is invalid.
    :statuscode 409: No user is currently logged in or currently logged in user does not have a premium subscription.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
 
 Statistics rendering code
 ================================
@@ -2611,8 +2611,8 @@ Statistics rendering code
    :resjson string result: The source code of the renderer.
    :statuscode 200: Rendering code succesfully returned.
    :statuscode 400: Provided JSON is in some way malformed.
-   :statuscode 409: No user is currently logged in or currently logged in user does not have a premium subscription. There is a problem reaching the Rotki server.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 409: No user is currently logged in or currently logged in user does not have a premium subscription. There is a problem reaching the backend server.
+   :statuscode 500: Internal backend error.
 
 Dealing with trades
 ===================
@@ -2693,12 +2693,12 @@ Dealing with trades
    :statuscode 200: Trades are succesfully returned
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 409: No user is logged in.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
    :statuscode 502: Error reaching the remote from which the trades got requested
 
 .. http:put:: /api/(version)/trades
 
-   Doing a PUT on this endpoint adds a new trade to Rotki's currently logged in user.
+   Doing a PUT on this endpoint adds a new trade to backend's currently logged in user.
 
    **Example Request**:
 
@@ -2759,11 +2759,11 @@ Dealing with trades
    :statuscode 200: Trades was succesfully added.
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 409: No user is currently logged in.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 .. http:patch:: /api/(version)/trades
 
-   Doing a PATCH on this endpoint edits an existing trade in Rotki's currently logged in user using the ``trade_id``.
+   Doing a PATCH on this endpoint edits an existing trade in backend's currently logged in user using the ``trade_id``.
 
    **Example Request**:
 
@@ -2825,11 +2825,11 @@ Dealing with trades
    :statuscode 200: Trades was succesfully edited.
    :statuscode 400: Provided JSON is in some way malformed.
    :statuscode 409: No user is logged in. The given trade identifier to edit does not exist.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
 
 .. http:delete:: /api/(version)/trades
 
-   Doing a DELETE on this endpoint deletes an existing trade in Rotki's currently logged in user using the ``trade_id``.
+   Doing a DELETE on this endpoint deletes an existing trade in backend's currently logged in user using the ``trade_id``.
 
    **Example Request**:
 
@@ -2858,7 +2858,7 @@ Dealing with trades
    :statuscode 200: Trades was succesfully deleted.
    :statuscode 400: Provided JSON is in some way malformed.
    :statuscode 409: No user is logged in. The given trade identifier to delete does not exist.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
 
 Querying asset movements
 ===========================
@@ -2932,7 +2932,7 @@ Querying asset movements
    :statuscode 200: Deposits/withdrawals are succesfully returned
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 409: No user is logged in.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
    :statuscode 502: Error querying the remote for the asset movements
 
 
@@ -3008,11 +3008,11 @@ Dealing with ledger actions
    :statuscode 200: Actions are succesfully returned
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 409: No user is logged in.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 .. http:put:: /api/(version)/ledgeractions
 
-   Doing a PUT on this endpoint adds a new ledgeraction to Rotki's currently logged in user. The identifier of the new created action is returned.
+   Doing a PUT on this endpoint adds a new ledgeraction to backend's currently logged in user. The identifier of the new created action is returned.
 
    **Example Request**:
 
@@ -3050,11 +3050,11 @@ Dealing with ledger actions
    :statuscode 200: Ledger action was succesfully added.
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 409: No user is currently logged in.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 .. http:patch:: /api/(version)/ledgeractions
 
-   Doing a PATCH on this endpoint edits an existing ledger action in Rotki's currently logged in user using the given ``identifier``.
+   Doing a PATCH on this endpoint edits an existing ledger action in backend's currently logged in user using the given ``identifier``.
 
    **Example Request**:
 
@@ -3109,11 +3109,11 @@ Dealing with ledger actions
    :statuscode 200: Actions was succesfully edited.
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 409: No user is logged in.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 .. http:delete:: /api/(version)/ledgeractions
 
-   Doing a DELETE on this endpoint deletes an existing ledger action in Rotki's currently logged in user using the ``identifier``.
+   Doing a DELETE on this endpoint deletes an existing ledger action in backend's currently logged in user using the ``identifier``.
 
    **Example Request**:
 
@@ -3159,7 +3159,7 @@ Dealing with ledger actions
    :statuscode 200: Action was succesfully removed.
    :statuscode 400: Provided JSON is in some way malformed
    :statuscode 409: No user is logged in.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Querying messages to show to the user
 =====================================
@@ -3195,7 +3195,7 @@ Querying messages to show to the user
    :resjson list[string] warnings: A list of strings denoting warnings that need to be shown to the user.
 
    :statuscode 200: Messages popped and read succesfully.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
 
 Querying complete action history
 ================================
@@ -3336,12 +3336,12 @@ Querying complete action history
    :resjson str net_profit_or_loss: The net profit/loss from this action denoted in profit currency.
    :resjson int time: The timestamp this action took place in.
    :resjson bool is_virtual: A boolean denoting whether this is a virtual action. Virtual actions are special actions that are created to make accounting for crypto to crypto trades possible. For example, if you sell BTC for ETH a virtual trade to sell BTC for EUR and then a virtual buy to buy BTC with EUR will be created.
-   :resjson object cost_basis: An object describing the cost basis of the event if it's a spend event. Contains a boolean attribute ``"is_complete"`` to denoting if we have complete cost basis information for the spent asset or not. If not then this means that rotki does not know enough to properly calculate cost basis. The other attribute is ``"matched_acquisitions"`` a list of matched acquisition events from which the cost basis is calculated. Each event has ``"time"``, ``"description"``, ``"location"`` attributes which are self-explanatory. Then it also has the ``"amount"`` which is the amount that was acquired in that event and the ``"used_amount"`` which is how much of that is used in this spend action. Then there is the ``"rate"`` key which shows the rate in the profit currency with which 1 unit of the asset was acquired at the event. And finally the ``"fee_rate"`` denoting how much of the profit currency was paid for each unit of the asset bought.
+   :resjson object cost_basis: An object describing the cost basis of the event if it's a spend event. Contains a boolean attribute ``"is_complete"`` to denoting if we have complete cost basis information for the spent asset or not. If not then this means that backend does not know enough to properly calculate cost basis. The other attribute is ``"matched_acquisitions"`` a list of matched acquisition events from which the cost basis is calculated. Each event has ``"time"``, ``"description"``, ``"location"`` attributes which are self-explanatory. Then it also has the ``"amount"`` which is the amount that was acquired in that event and the ``"used_amount"`` which is how much of that is used in this spend action. Then there is the ``"rate"`` key which shows the rate in the profit currency with which 1 unit of the asset was acquired at the event. And finally the ``"fee_rate"`` denoting how much of the profit currency was paid for each unit of the asset bought.
 
    :statuscode 200: History processed and returned succesfully
    :statuscode 400: Provided JSON is in some way malformed.
    :statuscode 409: No user is currently logged in.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
 
 Export action history to CSV
 ================================
@@ -3381,7 +3381,7 @@ Export action history to CSV
    :statuscode 200: File were exported succesfully
    :statuscode 400: Provided JSON is in some way malformed or given string is not a directory.
    :statuscode 409: No user is currently logged in. No history has been processed. No permissions to write in the given directory. Check error message.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
 
 Querying history progress status
 =================================
@@ -3417,7 +3417,7 @@ Querying history progress status
    :resjson str total_progress: A percentage showing the total progress of the profit/loss report.
    :statuscode 200: Data were queried succesfully.
    :statuscode 409: No user is currently logged in.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
 
 Querying periodic data
 ======================
@@ -3454,7 +3454,7 @@ Querying periodic data
    :resjson bool eth_node_connection: A boolean denoting if the application is connected to an ethereum node. If ``false`` that means we fall back to etherscan.
    :statuscode 200: Data were queried succesfully.
    :statuscode 409: No user is currently logged in.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
 
 
 Getting blockchain account data
@@ -3507,7 +3507,7 @@ Getting blockchain account data
 
    :statuscode 200: Account data succesfully queried.
    :statuscode 409: User is not logged in.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
    **Example Request**:
 
@@ -3568,7 +3568,7 @@ Getting blockchain account data
 
    :statuscode 200: Account data succesfully queried.
    :statuscode 409: User is not logged in.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Getting all DeFi balances
 =========================
@@ -3715,7 +3715,7 @@ Getting all DeFi balances
 
    :statuscode 200: Balances succesfully queried.
    :statuscode 409: User is not logged in or if using own chain the chain is not synced.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
    :statuscode 502: An external service used in the query such as etherscan could not be reached or returned unexpected response.
 
 
@@ -3765,11 +3765,11 @@ Getting current ethereum MakerDAO DSR balance
           "message": ""
       }
 
-   :resjson object result: A mapping of accounts to the number of DAI they have locked in DSR and the corresponding USD value. If an account is not in the mapping Rotki does not see anything locked in DSR for it.
+   :resjson object result: A mapping of accounts to the number of DAI they have locked in DSR and the corresponding USD value. If an account is not in the mapping backend does not see anything locked in DSR for it.
 
    :statuscode 200: DSR succesfully queried.
    :statuscode 409: User is not logged in. Or makerdao module is not activated.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
    :statuscode 502: An external service used in the query such as etherscan could not be reached or returned unexpected response.
 
 Getting ethereum MakerDAO DSR historical report
@@ -3877,7 +3877,7 @@ Getting ethereum MakerDAO DSR historical report
           "message": ""
       }
 
-   :resjson object result: A mapping of accounts to the DSR history report of each account. If an account is not in the mapping Rotki does not see anything locked in DSR for it.
+   :resjson object result: A mapping of accounts to the DSR history report of each account. If an account is not in the mapping backend does not see anything locked in DSR for it.
    :resjson object movements: A list of deposits/withdrawals to/from the DSR for each account.
    :resjson string gain_so_far: The total gain so far in DAI from the DSR for this account. The amount is the DAI amount and the USD value is the added usd value of all the usd values of each movement again plus the usd value of the remaining taking into account current usd price
    :resjsonarr string movement_type: The type of movement involving the DSR. Can be either "deposit" or "withdrawal".
@@ -3888,7 +3888,7 @@ Getting ethereum MakerDAO DSR historical report
 
    :statuscode 200: DSR history succesfully queried.
    :statuscode 409: No user is currently logged in or currently logged in user does not have a premium subscription. Or makerdao module is not activated.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
    :statuscode 502: An external service used in the query such as etherscan could not be reached or returned unexpected response.
 
 Getting MakerDAO vaults basic data
@@ -3972,7 +3972,7 @@ Getting MakerDAO vaults basic data
    :resjsonarr string stability_fee: The current annual interest rate you have to pay for borrowing collateral from this vault type.
    :statuscode 200: Vaults succesfuly queried
    :statuscode 409: User is not logged in. Or makerdao module is not activated.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
    :statuscode 502: An external service used in the query such as etherscan could not be reached or returned unexpected response.
 
 Getting MakerDAO vault details
@@ -4095,7 +4095,7 @@ Getting MakerDAO vault details
 
    :statuscode 200: Vault details succesfuly queried
    :statuscode 409: User is not logged in. Or makerdao module is not activated.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
    :statuscode 502: An external service used in the query such as etherscan could not be reached or returned unexpected response.
 
 Getting Aave balances
@@ -4178,7 +4178,7 @@ Getting Aave balances
 
    :statuscode 200: Aave balances succesfully queried.
    :statuscode 409: User is not logged in. Or aave module is not activated.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
    :statuscode 502: An external service used in the query such as etherscan could not be reached or returned unexpected response.
 
 
@@ -4306,7 +4306,7 @@ Getting Aave historical data
           "message": ""
       }
 
-   :resjson object result: A mapping of accounts to the Aave history report of each account. If an account is not in the mapping Rotki does not see anything ever deposited in Aave for it.
+   :resjson object result: A mapping of accounts to the Aave history report of each account. If an account is not in the mapping backend does not see anything ever deposited in Aave for it.
    :resjson object events: A list of AaveEvents. Check the fields below for the potential values.
    :resjsonarr string event_type: The type of Aave event. Can be ``"deposit"``, ``"withdrawal"``, ``"interest"``, ``"borrow"``, ``"repay"`` and ``"liquidation"``.
    :resjsonarr int timestamp: The unix timestamp at which the event occured.
@@ -4329,7 +4329,7 @@ Getting Aave historical data
 
    :statuscode 200: Aave history succesfully queried.
    :statuscode 409: No user is currently logged in or currently logged in user does not have a premium subscription. Or aave module is not activated.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
    :statuscode 502: An external service used in the query such as etherscan could not be reached or returned unexpected response.
 
 Getting AdEx balances
@@ -4388,7 +4388,7 @@ Getting AdEx balances
 
    :statuscode 200: AdEx balances succesfully queried.
    :statuscode 409: User is not logged in. Or AdEx module is not activated.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
    :statuscode 502: An external service used in the query such as etherscan or the graph node could not be reached or returned unexpected response.
 
 Getting AdEx historical data
@@ -4575,7 +4575,7 @@ Getting AdEx historical data
 
    :statuscode 200: AdEx events history succesfully queried.
    :statuscode 409: User is not logged in. Or AdEx module is not activated.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
    :statuscode 502: An external service used in the query such as etherscan or the graph node could not be reached or returned unexpected response.
 
 Getting Balancer balances
@@ -4679,7 +4679,7 @@ Getting Balancer balances
    :resjson string address: The LP contract address.
    :resjson list[object] tokens: A list with the LP underlying tokens data.
 
-       - token: the token identifier (as string). When its an object it means the token is unknown to rotki.
+       - token: the token identifier (as string). When its an object it means the token is unknown to backend.
        - total_amount: the total amount of this token the LP has.
        - usd_price: the token USD price.
        - user_balance: the token amount of the user and its estimated USD value.
@@ -4690,7 +4690,7 @@ Getting Balancer balances
 
    :statuscode 200: Balancer balances succesfully queried.
    :statuscode 409: User is not logged in. Or Balancer module is not activated.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
    :statuscode 502: An external service used in the query such as the graph node could not be reached or returned unexpected response.
 
 Getting Balancer events
@@ -4787,14 +4787,14 @@ Getting Balancer events
    :resjson list[object] profit_loss_amounts: A mapping between each pool token identifier and the profit/loss amount.
    :resjson list[object] pool_tokens: A list with the LP underlying tokens data.
 
-       - token: the token identifier (as string). When its an object it means the token is unknown to rotki.
+       - token: the token identifier (as string). When its an object it means the token is unknown to backend.
        - weight: the weight (%) that represents the token in the LP.
 
    :resjson string usd_profit_loss: The total profit/loss in USD.
 
    :statuscode 200: Balancer events succesfully queried.
    :statuscode 409: User is not logged in. Or Balancer module is not activated.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
    :statuscode 502: An external service used in the query such as the graph node could not be reached or returned unexpected response.
 
 Getting Balancer trades
@@ -4923,7 +4923,7 @@ Getting Balancer trades
 
    :statuscode 200: Balancer trades succesfully queried.
    :statuscode 409: User is not logged in. Or Balancer module is not activated.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
    :statuscode 502: An external service used in the query such as the graph node could not be reached or returned unexpected response.
 
 Getting Compound balances
@@ -5012,7 +5012,7 @@ Getting Compound balances
 
    :statuscode 200: Compound balances succesfully queried.
    :statuscode 409: User is not logged in. Or compound module is not activated.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
    :statuscode 502: An external service used in the query such as etherscan or the graph node could not be reached or returned unexpected response.
 
 Getting compound historical data
@@ -5238,7 +5238,7 @@ Getting compound historical data
 
    :statuscode 200: Compound history succesfully queried.
    :statuscode 409: User is not logged in. Or compound module is not activated.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
    :statuscode 502: An external service used in the query such as etherscan or the graph node could not be reached or returned unexpected response.
 
 Getting Uniswap balances
@@ -5309,13 +5309,13 @@ Getting Uniswap balances
 
    :resjson object result: A mapping between accounts and their Uniswap balances (represented by a list where each item is a LP).
    :resjson string address: The LP contract address.
-   :resjson list[object] assets: A list with the LP underlying tokens data. Per item, when ``"asset"`` is an object, it means the token is unknown to Rotki. ``"total_amount"`` is the total amount of this token the pool has. ``"total_amount"`` is only available to premium users. For free users ``null`` is returned. ``"usd_price"`` is the token USD price. ``"user_balance"`` contains the user token balance and its estimated USD value.
+   :resjson list[object] assets: A list with the LP underlying tokens data. Per item, when ``"asset"`` is an object, it means the token is unknown to backend. ``"total_amount"`` is the total amount of this token the pool has. ``"total_amount"`` is only available to premium users. For free users ``null`` is returned. ``"usd_price"`` is the token USD price. ``"user_balance"`` contains the user token balance and its estimated USD value.
    :resjson optional[string] total_supply: The total amount of liquidity tokens the LP has. Only available for premium users via the graph query. For free users ``null`` is returned.
    :resjson object user_balance: The liquidity token user balance and its USD value.
 
    :statuscode 200: Uniswap balances succesfully queried.
    :statuscode 409: User is not logged in. Or Uniswap module is not activated.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
    :statuscode 502: An external service used in the query such as etherscan or the graph node could not be reached or returned unexpected response.
 
 Getting Uniswap events
@@ -5414,7 +5414,7 @@ Getting Uniswap events
 
    :statuscode 200: Uniswap events succesfully queried.
    :statuscode 409: User is not logged in. Or Uniswap module is not activated.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
    :statuscode 502: An external service used in the query such as etherscan or the graph node could not be reached or returned unexpected response.
 
 Getting Uniswap trades
@@ -5547,7 +5547,7 @@ Getting Uniswap trades
 
    :statuscode 200: Uniswap trades succesfully queried.
    :statuscode 409: User is not logged in. Or Uniswap module is not activated.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
    :statuscode 502: An external service used in the query such as etherscan or the graph node could not be reached or returned unexpected response.
 
 Getting yearn finance vaults balances
@@ -5633,7 +5633,7 @@ Getting yearn finance vaults balances
 
    :statuscode 200: Yearn vault balances succesfully queried.
    :statuscode 409: User is not logged in. Or yearn module is not activated.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
    :statuscode 502: An external service used in the query such as etherscan could not be reached or returned unexpected response.
 
 
@@ -5783,7 +5783,7 @@ Getting yearn finance vaults historical data
 
    :statuscode 200: Yearn vaults history succesfully queried.
    :statuscode 409: User is not logged in. Or yearn module is not activated.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
    :statuscode 502: An external service used in the query such as etherscan could not be reached or returned unexpected response.
 
 Getting Loopring balances
@@ -5832,7 +5832,7 @@ Getting Loopring balances
 
    :statuscode 200: Loopring balances succesfully queried.
    :statuscode 409: User is not logged in. Or loopring module is not activated.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
    :statuscode 502: An external service used in the query such as loopring returned an unexpected result.
 
 
@@ -5956,7 +5956,7 @@ Getting Eth2 Staking details
 
    :statuscode 200: Eth2 staking details succesfully queried
    :statuscode 409: User is not logged in.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
    :statuscode 502: An external service used in the query such as etherscan could not be reached or returned unexpected response.
 
 Getting Eth2 Staking deposits
@@ -6024,7 +6024,7 @@ Getting Eth2 Staking deposits
 
    :statuscode 200: Eth2 staking deposits succesfully queried
    :statuscode 409: User is not logged in.
-   :statuscode 500: Internal Rotki error.
+   :statuscode 500: Internal backend error.
    :statuscode 502: An external service used in the query such as etherscan could not be reached or returned unexpected response.
 
 
@@ -6079,7 +6079,7 @@ Querying ethereum airdrops
 
    :statuscode 200: Tags succesfully queried.
    :statuscode 409: User is not logged in.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
    :statuscode 502: Could not query an airdrop file
 
 Get addresses to query per protocol
@@ -6115,7 +6115,7 @@ Get addresses to query per protocol
    :resjson list result: A mapping of modules/protocols for which an entry exists to the list of addresses to query.
    :statuscode 200: The addresses have been queried succesfully
    :statuscode 409: No user is logged in.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 
 Add address to query per protocol
@@ -6157,7 +6157,7 @@ Add address to query per protocol
    :statuscode 200: The address has been added succesfully.
    :statuscode 400: Provided JSON is in some way malformed.
    :statuscode 409: No user is logged in. The address already exists in the addresses to query for that protocol.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Remove an address to query per protocol
 =========================================
@@ -6198,7 +6198,7 @@ Remove an address to query per protocol
    :statuscode 200: The address has been removed succesfully.
    :statuscode 400: Provided JSON is in some way malformed.
    :statuscode 409: No user is logged in. The address is not in the addresses to query for that protocol.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Adding blockchain accounts
 ===========================
@@ -6310,7 +6310,7 @@ Adding blockchain accounts
    :statuscode 200: Accounts succesfully added
    :statuscode 400: Provided JSON or data is in some way malformed. The accounts to add contained invalid addresses or were an empty list.
    :statuscode 409: User is not logged in. Some error occured when re-querying the balances after addition. Provided tags do not exist. Check message for details.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
    :statuscode 502: Error occured with some external service query such as Etherscan. Check message for details.
 
 
@@ -6322,7 +6322,7 @@ Adding BTC xpubs
    .. note::
       This endpoint can also be queried asynchronously by using ``"async_query": true``
 
-   Doing a PUT on the BTC xpubs endpoint will add an extended public key for bitcoin mainnet. All derived addresses that have ever had a transaction from this xpub and derivation path will be found and added for tracking in rotki.
+   Doing a PUT on the BTC xpubs endpoint will add an extended public key for bitcoin mainnet. All derived addresses that have ever had a transaction from this xpub and derivation path will be found and added for tracking in backend.
 
 
    **Example Request**:
@@ -6413,7 +6413,7 @@ Adding BTC xpubs
    :statuscode 200: Xpub succesfully added
    :statuscode 400: Provided JSON or data is in some way malformed. The accounts to add contained invalid addresses or were an empty list.
    :statuscode 409: User is not logged in. Some error occured when re-querying the balances after addition. Provided tags do not exist. Check message for details.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
    :statuscode 502: Error occured with some external service query such as blockstream. Check message for details.
 
 Editing BTC xpubs
@@ -6504,7 +6504,7 @@ Editing BTC xpubs
    :statuscode 200: Xpub succesfully editted
    :statuscode 400: Provided JSON or data is in some way malformed. The accounts to add contained invalid addresses or were an empty list.
    :statuscode 409: User is not logged in. Some error occured when re-querying the balances after addition. Provided tags do not exist. Check message for details.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Deleting BTC xpubs
 ========================
@@ -6587,7 +6587,7 @@ Deleting BTC xpubs
    :statuscode 200: Xpub succesfully removed
    :statuscode 400: Provided JSON or data is in some way malformed. The accounts to add contained invalid addresses or were an empty list.
    :statuscode 409: User is not logged in. Some error occured when re-querying the balances after addition. Check message for details.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
    :statuscode 502: Error occured with some external service query such as blockstream. Check message for details.
 
 Editing blockchain account data
@@ -6651,7 +6651,7 @@ Editing blockchain account data
    :statuscode 200: Accounts succesfully edited
    :statuscode 400: Provided JSON or data is in some way malformed. Given list to edit is empty.
    :statuscode 409: User is not logged in. An account given to edit does not exist or a given tag does not exist.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Removing blockchain accounts
 ==============================
@@ -6732,7 +6732,7 @@ Removing blockchain accounts
    :statuscode 200: Accounts succesfully deleted
    :statuscode 400: Provided JSON or data is in some way malformed. The accounts to remove contained invalid addresses or were an empty list.
    :statuscode 409: User is not logged in. Some error occured when re-querying the balances after addition. Check message for details.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
    :statuscode 502: Error occured with some external service query such as Etherscan. Check message for details.
 
 Getting manually tracked balances
@@ -6788,7 +6788,7 @@ Getting manually tracked balances
    :resjson object result: An object containing all the manually tracked balances as defined `here <manually_tracked_balances_section_>`__ with additionally a current usd equivalent value per account.
    :statuscode 200: Balances succesfully queried
    :statuscode 409: User is not logged in.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Adding manually tracked balances
 ====================================
@@ -6798,7 +6798,7 @@ Adding manually tracked balances
    .. note::
       This endpoint can also be queried asynchronously by using ``"async_query": true``
 
-   Doing a PUT on the the manually tracked balances endpoint you can add a balance for an asset that Rotki can't automatically detect, along with a label identifying it for you and any number of tags.
+   Doing a PUT on the the manually tracked balances endpoint you can add a balance for an asset that backend can't automatically detect, along with a label identifying it for you and any number of tags.
 
    .. _manually_tracked_balances_section:
 
@@ -6825,7 +6825,7 @@ Adding manually tracked balances
               }]
       }
 
-   :reqjson list[object] balances: A list of manually tracked balances to add to Rotki
+   :reqjson list[object] balances: A list of manually tracked balances to add to backend
    :reqjsonarr string asset: The asset that is being tracked
    :reqjsonarr string label: A label to describe where is this balance stored. Must be unique between all manually tracked balance labels.
    :reqjsonarr string amount: The amount of asset that is stored.
@@ -6869,7 +6869,7 @@ Adding manually tracked balances
    :statuscode 200: Balances succesfully added
    :statuscode 400: Provided JSON or data is in some way malformed. The balances to add contained invalid assets or were an empty list. One of the balance labels already exist.
    :statuscode 409: User is not logged in. Provided tags do not exist. Check message for details.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
    :statuscode 502: Error occured with some external service query such as Cryptocompare. Check message for details.
 
 Editing manually tracked balances
@@ -6942,7 +6942,7 @@ Editing manually tracked balances
    :statuscode 200: Balances succesfully edited
    :statuscode 400: Provided JSON or data is in some way malformed. The balances to add contained invalid assets or were an empty list.
    :statuscode 409: User is not logged in. Provided tags do not exist. Check message for details.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
    :statuscode 502: Error occured with some external service query such as Cryptocompare. Check message for details.
 
 Deleting manually tracked balances
@@ -7004,7 +7004,7 @@ Deleting manually tracked balances
    :statuscode 200: Balances succesfully delete
    :statuscode 400: Provided JSON or data is in some way malformed. One of the labels to remove did not exist.
    :statuscode 409: User is not logged in. Check message for details.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
    :statuscode 502: Error occured with some external service query such as Cryptocompare. Check message for details.
 
 Getting watchers
@@ -7014,7 +7014,7 @@ Getting watchers
    .. note::
       This endpoint is only available for premium users
 
-   Doing a GET on the watchers endpoint, will return the currently installed watchers from the rotki server.
+   Doing a GET on the watchers endpoint, will return the currently installed watchers from the backend server.
 
    **Example Request**:
 
@@ -7051,8 +7051,8 @@ Getting watchers
    :reqjsonarr object args: An object containing the args for the vault. Depending on the vault type different args are possible. Check `here <watcher_types_section_>`__ to see the different options.
    :statuscode 200: Watchers succesfully queried
    :statuscode 409: No user is currently logged in or currently logged in user does not have a premium subscription.
-   :statuscode 500: Internal Rotki error
-   :statuscode 502: Could not connect to or got unexpected response format from Rotki server
+   :statuscode 500: Internal backend error
+   :statuscode 502: Could not connect to or got unexpected response format from backend server
 
 
    .. _watcher_types_section:
@@ -7121,8 +7121,8 @@ Adding new watcher
    :statuscode 200: Watchers succesfully added
    :statuscode 400: Provided JSON or data is in some way malformed. Or the same watcher already exists for this user in the DB.
    :statuscode 409: No user is currently logged in or currently logged in user does not have a premium subscription.
-   :statuscode 500: Internal Rotki error
-   :statuscode 502: Could not connect to or got unexpected response format from Rotki server
+   :statuscode 500: Internal backend error
+   :statuscode 502: Could not connect to or got unexpected response format from backend server
 
 Editing watchers
 ==================
@@ -7179,8 +7179,8 @@ Editing watchers
    :statuscode 200: Watchers succesfully edited
    :statuscode 400: Provided JSON or data is in some way malformed. Or a given identifier does not exist in the DB.
    :statuscode 409: No user is currently logged in or currently logged in user does not have a premium subscription.
-   :statuscode 500: Internal Rotki error
-   :statuscode 502: Could not connect to or got unexpected response format from Rotki server
+   :statuscode 500: Internal backend error
+   :statuscode 502: Could not connect to or got unexpected response format from backend server
 
 Deleting watchers
 ==================
@@ -7225,8 +7225,8 @@ Deleting watchers
    :statuscode 200: Watchers succesfully delete
    :statuscode 400: Provided JSON or data is in some way malformed. One of the identifiers  to remove did not exist.
    :statuscode 409: No user is currently logged in or currently logged in user does not have a premium subscription.
-   :statuscode 500: Internal Rotki error
-   :statuscode 502: Could not connect to or got unexpected response format from Rotki server
+   :statuscode 500: Internal backend error
+   :statuscode 502: Could not connect to or got unexpected response format from backend server
 
 Dealing with ignored assets
 ===========================
@@ -7259,7 +7259,7 @@ Dealing with ignored assets
    :statuscode 200: Assets succesfully queried
    :statuscode 400: Provided JSON or data is in some way malformed.
    :statuscode 409: User is not logged in.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 .. http:put:: /api/(version)/assets/ignored/
 
@@ -7293,7 +7293,7 @@ Dealing with ignored assets
    :statuscode 200: Assets succesfully added
    :statuscode 400: Provided JSON or data is in some way malformed.
    :statuscode 409: User is not logged in. One of the assets provided is already on the list.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 .. http:delete:: /api/(version)/assets/ignored/
 
@@ -7327,7 +7327,7 @@ Dealing with ignored assets
    :statuscode 200: Assets succesfully removed
    :statuscode 400: Provided JSON or data is in some way malformed.
    :statuscode 409: User is not logged in. One of the assets provided is not on the list.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 
 Dealing with ignored actions
@@ -7368,7 +7368,7 @@ Dealing with ignored actions
    :statuscode 200: Actions succesfully queried
    :statuscode 400: Provided JSON or data is in some way malformed.
    :statuscode 409: User is not logged in.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 .. http:put:: /api/(version)/actions/ignored
 
@@ -7403,7 +7403,7 @@ Dealing with ignored actions
    :statuscode 200: Action ids succesfully added
    :statuscode 400: Provided JSON or data is in some way malformed.
    :statuscode 409: User is not logged in. One of the action ids provided is already on the list.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 .. http:delete:: /api/(version)/actions/ignored/
 
@@ -7438,7 +7438,7 @@ Dealing with ignored actions
    :statuscode 200: Action ids succesfully removed
    :statuscode 400: Provided JSON or data is in some way malformed.
    :statuscode 409: User is not logged in. One of the action ids provided is not on the list.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 
 Querying the version
@@ -7446,7 +7446,7 @@ Querying the version
 
 .. http:get:: /api/(version)/version
 
-   Doing a GET on the version endpoint will return information about the version of Rotki. If there is a newer version then ``"download_url"`` will be populated. If not then only ``"our_version"`` and ``"latest_version"`` will be. There is a possibility that latest version may not be populated due to github not being reachable.
+   Doing a GET on the version endpoint will return information about the version of backend. If there is a newer version then ``"download_url"`` will be populated. If not then only ``"our_version"`` and ``"latest_version"`` will be. There is a possibility that latest version may not be populated due to github not being reachable.
 
 
    **Example Request**:
@@ -7467,17 +7467,17 @@ Querying the version
           "result": {
               "our_version": "1.0.3",
               "latest_version": "1.0.4",
-              "download_url": "https://github.com/rotki/rotki/releases/tag/v1.0.4"
+              "download_url": "https://github.com/backend/backend/releases/tag/v1.0.4"
           },
           "message": ""
       }
 
-   :resjson str our_version: The version of Rotki present in the system
-   :resjson str latest_version: The latest version of Rotki available
+   :resjson str our_version: The version of backend present in the system
+   :resjson str latest_version: The latest version of backend available
    :resjson str url: URL link to download the latest version
 
    :statuscode 200: Version information queried
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Sending a Ping
 ====================
@@ -7509,7 +7509,7 @@ Sending a Ping
    :resjson bool result: The result field in this response is a simple boolean value indicating success or failure.
 
    :statuscode 200: Ping successful
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
 
 Data imports
 =============
@@ -7547,4 +7547,4 @@ Data imports
    :statuscode 200: Data imported. Check user messages for warnings.
    :statuscode 400: Provided JSON or data is in some way malformed.
    :statuscode 409: User is not logged in.
-   :statuscode 500: Internal Rotki error
+   :statuscode 500: Internal backend error
