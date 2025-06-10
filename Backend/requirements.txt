@@ -22,3 +22,9 @@ webargs==6.0.0
 
 #constraints
 setuptools==41.0.1  # constraint required by pyinstaller==3.5.0
+
+pytest==6.2.1
+bump2version==0.5.8
+pytest-cov==2.10.1
+psutil==5.7.0
+pytest-freezegun==0.4.2

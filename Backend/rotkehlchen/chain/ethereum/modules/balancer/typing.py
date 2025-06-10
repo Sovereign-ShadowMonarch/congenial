@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, DefaultDict, Dict, List, NamedTuple, Optional, Set, Tuple, Union, cast
 
@@ -36,7 +36,7 @@ class BalancerPoolTokenBalance:
     total_amount: FVal  # token amount in the pool
     user_balance: Balance  # user token balance
     weight: FVal
-    usd_price: Price = Price(ZERO)
+    usd_price: Price = field(default_factory=lambda: Price(ZERO))
 
     def serialize(self) -> Dict:
         return {

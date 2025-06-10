@@ -7,7 +7,6 @@ from flask import Request
 from flask_restful import Resource
 from marshmallow import Schema, exceptions as ma_exceptions
 from marshmallow.fields import Field
-from webargs.compat import MARSHMALLOW_VERSION_INFO
 from webargs.core import _ensure_list_of_callables
 from webargs.dict2schema import dict2schema
 from webargs.flaskparser import FlaskParser
@@ -96,7 +95,7 @@ class ResourceReadingParser(FlaskParser):
                 schema=schema, req=req, location=location,
             )
             result = schema.load(location_data)
-            data = result.data if MARSHMALLOW_VERSION_INFO[0] < 3 else result
+            data = result
             self._validate_arguments(data, validators)
         except ma_exceptions.ValidationError as error:
             self._on_validation_error(
@@ -119,13 +118,6 @@ class ResourceReadingParser(FlaskParser):
         Initialize Schema with a callable that gets the resource object as argument"""
         assert callable(argmap), "Snould only use this parser with a callable"
         schema = argmap(resource_object)
-
-        if MARSHMALLOW_VERSION_INFO[0] < 3 and not schema.strict:
-            warnings.warn(
-                "It is highly recommended that you set strict=True on your schema "
-                "so that the parser's error handler will be invoked when expected.",
-                UserWarning,
-            )
         return schema
 
 

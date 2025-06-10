@@ -35,7 +35,13 @@ def main() -> None:
         print("Failed to start rotkehlchen backend:\n{}".format(tb))
         sys.exit(1)
 
-    rotkehlchen_server.main()
+    try:
+        rotkehlchen_server.main()
+    except: # noqa  # pylint: disable=bare-except
+        tb = traceback.format_exc()
+        logging.critical(tb)
+        print("Failed to start rotkehlchen backend at main loop:\n{}".format(tb))
+        sys.exit(1)
 
 
 if __name__ == '__main__':

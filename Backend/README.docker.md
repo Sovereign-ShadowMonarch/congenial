@@ -26,22 +26,22 @@ This document explains how to build, run, and use the containerized version of t
 
 4. Test the API:
    ```bash
-   curl http://localhost:8081/api/version
+   curl http://localhost:4242/api/version
    ```
 
 ## API Endpoints
 
 Your backend service exposes the following key API endpoints:
 
-- **Version Info**: `GET http://localhost:8081/api/version`
-- **Health Check**: `GET http://localhost:8081/api/health`
-- **Ping Test**: `GET http://localhost:8081/api/1/ping`
-- **Portfolio Data**: `GET http://localhost:8081/api/portfolio`
-- **Balances**: `GET http://localhost:8081/api/1/balances/all`
-- **Transactions**: `GET http://localhost:8081/api/1/transactions`
-- **PnL Report**: `GET http://localhost:8081/api/1/pnl_report`
-- **Statistics**: `GET http://localhost:8081/api/1/statistics/netvalue`
-- **Value Distribution**: `GET http://localhost:8081/api/1/statistics/value_distribution`
+- **Version Info**: `GET http://localhost:4242/api/version`
+- **Health Check**: `GET http://localhost:4242/api/health`
+- **Ping Test**: `GET http://localhost:4242/api/1/ping`
+- **Portfolio Data**: `GET http://localhost:4242/api/portfolio`
+- **Balances**: `GET http://localhost:4242/api/1/balances/all`
+- **Transactions**: `GET http://localhost:4242/api/1/transactions`
+- **PnL Report**: `GET http://localhost:4242/api/1/pnl_report`
+- **Statistics**: `GET http://localhost:4242/api/1/statistics/netvalue`
+- **Value Distribution**: `GET http://localhost:4242/api/1/statistics/value_distribution`
 
 ## Data Persistence
 
@@ -85,7 +85,7 @@ To track real blockchain wallets:
 
 ## Security Considerations
 
-- The API server is exposed on port 8081, which should be secured in production
+- The API server is exposed on port 4242, which should be secured in production
 - Consider using HTTPS for production deployments
 - API keys and wallet addresses are stored in the data volume, ensure proper permissions
 
@@ -103,4 +103,4 @@ If you encounter issues:
    docker-compose ps
    ```
 
-3. Ensure port 8081 is available on your host machine
+3. Ensure port 4242 is available on your host machine

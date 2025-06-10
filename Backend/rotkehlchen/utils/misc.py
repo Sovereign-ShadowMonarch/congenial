@@ -332,5 +332,12 @@ def rgetattr(obj: Any, attr: str, *args: Any) -> Any:
 
 def get_or_make_price_history_dir(data_directory: Path) -> Path:
     price_history_dir = data_directory / PRICE_HISTORY_DIR
-    price_history_dir.mkdir(parents=True, exist_ok=True)
+    price_history_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
     return price_history_dir
+
+
+def write_history_data_in_file(data: str, filepath: Path, mode: str = 'w') -> None:
+    """Writes history data in the given file, creating directories if needed"""
+    filepath.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    with open(filepath, mode) as f:
+        f.write(data)

@@ -24,5 +24,5 @@ The Backend directory contains modules for handling:
 - Risk analysis and portfolio metrics
 - Accounting and tax reporting functionality
 
-The API is accessible at `http://localhost:5042/api/1/` when running, providing the data layer that the Frontend component consumes to display the user interface.
+The API is accessible at `http://localhost:4242/api/1/` when running, providing the data layer that the Frontend component consumes to display the user interface.
 

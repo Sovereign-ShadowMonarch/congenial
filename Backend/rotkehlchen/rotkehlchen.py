@@ -60,8 +60,8 @@ from rotkehlchen.externalapis.etherscan import Etherscan
 from rotkehlchen.fval import FVal
 from rotkehlchen.globaldb import GlobalDBHandler
 from rotkehlchen.greenlets import GreenletManager
-from rotkehlchen.history import EventsHistorian, PriceHistorian
-from rotkehlchen.history.events import FREE_LEDGER_ACTIONS_LIMIT
+from rotkehlchen.history.events import EventsHistorian, FREE_LEDGER_ACTIONS_LIMIT
+from rotkehlchen.history.price import PriceHistorian
 from rotkehlchen.history.typing import HistoricalPriceOracle
 from rotkehlchen.icons import IconManager
 from rotkehlchen.inquirer import Inquirer

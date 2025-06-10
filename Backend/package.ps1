@@ -6,7 +6,7 @@ $BUILD_DEPENDENCIES = if ($env:BUILD_DEPENDENCIES) { $env:BUILD_DEPENDENCIES } e
 $MINIMUM_NPM_VERSION = "5.7.0"
 $TCLTK='tcltk85-8.5.19-17.tcl85.Win10.x86_64'
 
-echo "Starting rotki build process with SQLCipher $SQLCIPHER_VERSION and pysqlcipher3 $PYSQLCIPHER3_VERSION"
+echo "Starting Backend build process with SQLCipher $SQLCIPHER_VERSION and pysqlcipher3 $PYSQLCIPHER3_VERSION"
 
 $PROJECT_DIR = $PWD
 
@@ -252,7 +252,7 @@ if ($Env:CI) {
     echo "::endgroup::"
 }
 
-echo "Rotki $SETUP_VERSION was build successfully"
+echo "Backend $SETUP_VERSION was build successfully"
 
 if (($env:VIRTUAL_ENV) -and (-not ($Env:CI))) {
     deactivate

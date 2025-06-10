@@ -11,7 +11,7 @@ services:
       - ./Backend/data:/app/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/api/version"]
+      test: ["CMD", "curl", "-f", "http://localhost:4242/api/version"]
       interval: 30s
       timeout: 10s
       retries: 5

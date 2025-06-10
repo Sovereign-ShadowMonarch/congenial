@@ -1,7 +1,23 @@
+import enum
 import logging
+from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, DefaultDict, Dict, List, NamedTuple, Optional, Set, Tuple, Union
+from typing import (
+    Any,
+    DefaultDict,
+    Dict,
+    List,
+    NamedTuple,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+    overload,
+)
 
 from rotkehlchen.accounting.structures import Balance
 from rotkehlchen.assets.asset import EthereumToken
@@ -35,7 +51,7 @@ class LiquidityPoolAsset:
     asset: Union[EthereumToken, UnknownEthereumToken]
     total_amount: Optional[FVal]
     user_balance: Balance
-    usd_price: Price = Price(ZERO)
+    usd_price: Price = field(default_factory=lambda: Price(ZERO))
 
     def serialize(self) -> Dict[str, Any]:
         return {
@@ -290,9 +306,9 @@ class LiquidityPoolEventsBalance(NamedTuple):
 @dataclass(init=True, repr=True)
 class AggregatedAmount:
     events: List[LiquidityPoolEvent] = field(default_factory=list)
-    profit_loss0: FVal = ZERO
-    profit_loss1: FVal = ZERO
-    usd_profit_loss: FVal = ZERO
+    profit_loss0: FVal = field(default_factory=lambda: ZERO)
+    profit_loss1: FVal = field(default_factory=lambda: ZERO)
+    usd_profit_loss: FVal = field(default_factory=lambda: ZERO)
 
 
 AddressEvents = Dict[ChecksumEthAddress, List[LiquidityPoolEvent]]

@@ -77,7 +77,7 @@ from rotkehlchen.history.price import PriceHistorian
 from rotkehlchen.history.typing import HistoricalPriceOracle
 from rotkehlchen.inquirer import CurrentPriceOracle, Inquirer
 from rotkehlchen.logging import RotkehlchenLogsAdapter
-from rotkehlchen.premium.premium import PremiumCredentials
+# Premium functionality removed
 from rotkehlchen.rotkehlchen import FREE_ASSET_MOVEMENTS_LIMIT, FREE_TRADES_LIMIT, Rotkehlchen
 from rotkehlchen.serialization.serialize import process_result, process_result_list
 from rotkehlchen.typing import (
@@ -167,40 +167,7 @@ def require_loggedin_user() -> Callable:
     return _require_loggedin_user
 
 
-def require_premium_user(active_check: bool) -> Callable:
-    """
-    Decorator only for premium
-
-    This is a decorator for the RestAPI class's methods requiring a logged in
-    user to have premium subscription.
-
-    If active_check is false there is also an API call to the rotkehlchen server
-    to check that the saved key is also valid.
-    """
-    def _require_premium_user(f: Callable) -> Callable:
-        @wraps(f)
-        def wrapper(wrappingobj: 'RestAPI', *args: Any, **kwargs: Any) -> Any:
-            if not wrappingobj.rotkehlchen.user_is_logged_in:
-                result_dict = wrap_in_fail_result('No user is currently logged in')
-                return api_response(result_dict, status_code=HTTPStatus.CONFLICT)
-
-            msg = (
-                f'Currently logged in user {wrappingobj.rotkehlchen.data.username} '
-                f'does not have a premium subscription'
-            )
-            if not wrappingobj.rotkehlchen.premium:
-                result_dict = wrap_in_fail_result(msg)
-                return api_response(result_dict, status_code=HTTPStatus.CONFLICT)
-
-            if active_check:
-                if not wrappingobj.rotkehlchen.premium.is_active():
-                    result_dict = wrap_in_fail_result(msg)
-                    return api_response(result_dict, status_code=HTTPStatus.CONFLICT)
-
-            return f(wrappingobj, *args, **kwargs)
-
-        return wrapper
-    return _require_premium_user
+# Premium decorator removed - all functionality is now available to all users
 
 
 logger = logging.getLogger(__name__)
@@ -654,7 +621,7 @@ class RestAPI():
         result = {
             'entries': entries_result,
             'entries_found': self.rotkehlchen.data.db.get_entries_count(entry_table),
-            'entries_limit': FREE_TRADES_LIMIT if self.rotkehlchen.premium is None else -1,
+            'entries_limit': -1,  # No limits - premium restrictions removed
         }
 
         return {'result': result, 'message': '', 'status_code': HTTPStatus.OK}
@@ -786,7 +753,7 @@ class RestAPI():
             return {'result': None, 'message': str(e), 'status_code': HTTPStatus.BAD_GATEWAY}
 
         serialized_movements = process_result_list([x.serialize() for x in movements])
-        limit = FREE_ASSET_MOVEMENTS_LIMIT if self.rotkehlchen.premium is None else -1
+        limit = -1  # No limits - premium restrictions removed
 
         mapping = self.rotkehlchen.data.db.get_ignored_action_ids(ActionType.ASSET_MOVEMENT)
         ignored_ids = mapping.get(ActionType.ASSET_MOVEMENT, [])
@@ -840,7 +807,7 @@ class RestAPI():
             location: Optional[Location],
     ) -> Dict[str, Any]:
         actions, original_length = self.rotkehlchen.events_historian.query_ledger_actions(
-            has_premium=self.rotkehlchen.premium is not None,
+            has_premium=True,  # Always True - premium restrictions removed
             from_ts=from_ts,
             to_ts=to_ts,
             location=location,
@@ -858,7 +825,7 @@ class RestAPI():
         result = {
             'entries': entries_result,
             'entries_found': original_length,
-            'entries_limit': FREE_LEDGER_ACTIONS_LIMIT if self.rotkehlchen.premium is None else -1,
+            'entries_limit': -1,  # No limits - premium restrictions removed
         }
 
         return {'result': result, 'message': '', 'status_code': HTTPStatus.OK}
@@ -1013,8 +980,7 @@ class RestAPI():
             self,
             name: str,
             password: str,
-            premium_api_key: str,
-            premium_api_secret: str,
+            # premium parameters removed
             initial_settings: Optional[ModifiableDBSettings],
     ) -> Response:
         result_dict: Dict[str, Any] = {'result': None, 'message': ''}
@@ -1034,16 +1000,7 @@ class RestAPI():
             result_dict['message'] = 'Must provide both or neither of api key/secret'
             return api_response(result_dict, status_code=HTTPStatus.BAD_REQUEST)
 
-        premium_credentials = None
-        if premium_api_key != '' and premium_api_secret != '':
-            try:
-                premium_credentials = PremiumCredentials(
-                    given_api_key=premium_api_key,
-                    given_api_secret=premium_api_secret,
-                )
-            except IncorrectApiKeyFormat:
-                result_dict['message'] = 'Provided API/Key secret format is invalid'
-                return api_response(result_dict, status_code=HTTPStatus.BAD_REQUEST)
+        # Premium functionality removed
 
         try:
             self.rotkehlchen.unlock_user(
@@ -1053,7 +1010,7 @@ class RestAPI():
                 # For new accounts the value of sync approval does not matter.
                 # Will always get the latest data from the server since locally we got nothing
                 sync_approval='yes',
-                premium_credentials=premium_credentials,
+                # premium_credentials removed
                 initial_settings=initial_settings,
             )
         # not catching RotkehlchenPermissionError here as for new account with premium
@@ -1091,7 +1048,7 @@ class RestAPI():
                 password=password,
                 create_new=False,
                 sync_approval=sync_approval,
-                premium_credentials=None,
+                # premium_credentials=None - removed
             )
         # We are not catching PremiumAuthenticationError here since it should not bubble
         # up until here. Even with non valid keys in the DB login should work fine
@@ -1136,36 +1093,7 @@ class RestAPI():
         result_dict['result'] = True
         return api_response(result_dict, status_code=HTTPStatus.OK)
 
-    @require_loggedin_user()
-    def user_set_premium_credentials(
-            self,
-            name: str,
-            api_key: str,
-            api_secret: str,
-    ) -> Response:
-        result_dict: Dict[str, Any] = {'result': None, 'message': ''}
-
-        if name != self.rotkehlchen.data.username:
-            result_dict['message'] = f'Provided user {name} is not the logged in user'
-            return api_response(result_dict, status_code=HTTPStatus.CONFLICT)
-
-        try:
-            credentials = PremiumCredentials(
-                given_api_key=api_key,
-                given_api_secret=api_secret,
-            )
-        except IncorrectApiKeyFormat:
-            result_dict['message'] = 'Given API Key/Secret pair format is invalid'
-            return api_response(result_dict, status_code=HTTPStatus.BAD_REQUEST)
-
-        try:
-            self.rotkehlchen.set_premium_credentials(credentials)
-        except PremiumAuthenticationError as e:
-            result_dict['message'] = str(e)
-            return api_response(result_dict, status_code=HTTPStatus.UNAUTHORIZED)
-
-        result_dict['result'] = True
-        return api_response(result_dict, status_code=HTTPStatus.OK)
+    # Premium credential methods removed
 
     @require_loggedin_user()
     def user_change_password(
@@ -1197,19 +1125,7 @@ class RestAPI():
         # else
         return api_response(OK_RESULT, status_code=HTTPStatus.OK)
 
-    @require_premium_user(active_check=False)
-    def user_premium_key_remove(self) -> Response:
-        """Returns successful result if API keys are successfully removed"""
-        result_dict: Dict[str, Any] = {'result': None, 'message': ''}
-        success: bool
-
-        success, msg = self.rotkehlchen.delete_premium_credentials()
-
-        if success is False:
-            result_dict['message'] = msg
-            return api_response(result_dict, status_code=HTTPStatus.CONFLICT)
-        # else
-        return api_response(OK_RESULT, status_code=HTTPStatus.OK)
+    # Premium key removal method removed
 
     @staticmethod
     def query_all_assets() -> Response:
@@ -1294,18 +1210,14 @@ class RestAPI():
 
     def query_netvalue_data(self) -> Response:
         from_ts = Timestamp(0)
-        premium = self.rotkehlchen.premium
-
-        if premium is None or not premium.is_active():
-            today = datetime.datetime.today()
-            start_of_day_today = datetime.datetime(today.year, today.month, today.day)
-            from_ts = Timestamp(int((start_of_day_today - datetime.timedelta(days=14)).timestamp()))  # noqa: E501
+        # Premium restrictions removed - always return all data
+        # previously limited to 14 days for non-premium users
 
         data = self.rotkehlchen.data.db.get_netvalue_data(from_ts)
         result = process_result({'times': data[0], 'data': data[1]})
         return api_response(_wrap_in_ok_result(result), status_code=HTTPStatus.OK)
 
-    @require_premium_user(active_check=False)
+    @require_loggedin_user()
     def query_timed_balances_data(
             self,
             asset: Asset,
@@ -1323,7 +1235,7 @@ class RestAPI():
         result = process_result_list(data)
         return api_response(_wrap_in_ok_result(result), status_code=HTTPStatus.OK)
 
-    @require_premium_user(active_check=False)
+    @require_loggedin_user()
     def query_value_distribution_data(self, distribution_by: str) -> Response:
         data: Union[List[DBAssetBalance], List[LocationData]]
         if distribution_by == 'location':
@@ -1335,12 +1247,12 @@ class RestAPI():
         result = process_result_list(data)
         return api_response(_wrap_in_ok_result(result), status_code=HTTPStatus.OK)
 
-    @require_premium_user(active_check=True)
+    @require_loggedin_user()
     def query_statistics_renderer(self) -> Response:
         result_dict = {'result': None, 'message': ''}
         try:
-            # Here we ignore mypy error since we use @require_premium_user() decorator
-            result = self.rotkehlchen.premium.query_statistics_renderer()  # type: ignore
+            # Premium statistics functionality removed - return empty result
+            result = {}  # Statistics renderer no longer available
             result_dict['result'] = result
             status_code = HTTPStatus.OK
         except RemoteError as e:
@@ -1864,7 +1776,7 @@ class RestAPI():
 
         return {'result': process_result_list([x._asdict() for x in result]), 'message': ''}
 
-    @require_premium_user(active_check=False)
+    @require_loggedin_user()
     def get_eth2_stake_deposits(self, async_query: bool) -> Response:
         if async_query:
             return self._query_async(command='_get_eth2_stake_deposits')
@@ -1892,7 +1804,7 @@ class RestAPI():
             'message': '',
         }
 
-    @require_premium_user(active_check=False)
+    @require_loggedin_user()
     def get_eth2_stake_details(self, async_query: bool) -> Response:
         if async_query:
             return self._query_async(command='_get_eth2_stake_details')
@@ -2049,7 +1961,7 @@ class RestAPI():
             query_specific_balances_before=None,
         )
 
-    @require_premium_user(active_check=False)
+    @require_loggedin_user()
     def get_makerdao_dsr_history(self, async_query: bool) -> Response:
         return self._api_query_for_eth_module(
             async_query=async_query,
@@ -2067,7 +1979,7 @@ class RestAPI():
             query_specific_balances_before=None,
         )
 
-    @require_premium_user(active_check=False)
+    @require_loggedin_user()
     def get_makerdao_vault_details(self, async_query: bool) -> Response:
         return self._api_query_for_eth_module(
             async_query=async_query,
@@ -2091,7 +2003,7 @@ class RestAPI():
             given_defi_balances=lambda: self.rotkehlchen.chain_manager.defi_balances,
         )
 
-    @require_premium_user(active_check=False)
+    @require_loggedin_user()
     def get_aave_history(
             self,
             async_query: bool,
@@ -2130,7 +2042,7 @@ class RestAPI():
             given_defi_balances=lambda: self.rotkehlchen.chain_manager.defi_balances,
         )
 
-    @require_premium_user(active_check=False)
+    @require_loggedin_user()
     def get_compound_history(
             self,
             async_query: bool,
@@ -2169,7 +2081,7 @@ class RestAPI():
             given_defi_balances=lambda: self.rotkehlchen.chain_manager.defi_balances,
         )
 
-    @require_premium_user(active_check=False)
+    @require_loggedin_user()
     def get_yearn_vaults_history(
             self,
             async_query: bool,
@@ -2203,7 +2115,7 @@ class RestAPI():
             addresses=self.rotkehlchen.chain_manager.queried_addresses_for_module('uniswap'),
         )
 
-    @require_premium_user(active_check=False)
+    @require_loggedin_user()
     def get_uniswap_events_history(
             self,
             async_query: bool,
@@ -2222,7 +2134,7 @@ class RestAPI():
             to_timestamp=to_timestamp,
         )
 
-    @require_premium_user(active_check=False)
+    @require_loggedin_user()
     def get_uniswap_trades_history(
             self,
             async_query: bool,
@@ -2251,7 +2163,7 @@ class RestAPI():
             addresses=self.rotkehlchen.chain_manager.queried_addresses_for_module('adex'),
         )
 
-    @require_premium_user(active_check=False)
+    @require_loggedin_user()
     def get_adex_history(
             self,
             async_query: bool,
@@ -2280,7 +2192,7 @@ class RestAPI():
             addresses=self.rotkehlchen.chain_manager.queried_addresses_for_module('loopring'),
         )
 
-    @require_premium_user(active_check=False)
+    @require_loggedin_user()
     def get_balancer_balances(self, async_query: bool) -> Response:
         return self._api_query_for_eth_module(
             async_query=async_query,
@@ -2290,7 +2202,7 @@ class RestAPI():
             addresses=self.rotkehlchen.chain_manager.queried_addresses_for_module('balancer'),
         )
 
-    @require_premium_user(active_check=False)
+    @require_loggedin_user()
     def get_balancer_events_history(
             self,
             async_query: bool,
@@ -2309,7 +2221,7 @@ class RestAPI():
             to_timestamp=to_timestamp,
         )
 
-    @require_premium_user(active_check=False)
+    @require_loggedin_user()
     def get_balancer_trades_history(
             self,
             async_query: bool,
@@ -2333,32 +2245,24 @@ class RestAPI():
             method: Literal['GET', 'PUT', 'PATCH', 'DELETE'],
             data: Optional[Dict[str, Any]],
     ) -> Response:
-        try:
-            # we know that premium exists here due to require_premium_user
-            result_json = self.rotkehlchen.premium.watcher_query(  # type:ignore
-                method=method,
-                data=data,
-            )
-        except RemoteError as e:
-            return api_response(wrap_in_fail_result(str(e)), status_code=HTTPStatus.BAD_GATEWAY)
-        except PremiumApiError as e:
-            return api_response(wrap_in_fail_result(str(e)), status_code=HTTPStatus.BAD_REQUEST)
+        # Premium watcher functionality removed
+        result_json = {}  # Watchers are no longer supported
 
         return api_response(_wrap_in_ok_result(result_json), status_code=HTTPStatus.OK)
 
-    @require_premium_user(active_check=False)
+    @require_loggedin_user()
     def get_watchers(self) -> Response:
         return self._watcher_query(method='GET', data=None)
 
-    @require_premium_user(active_check=False)
+    @require_loggedin_user()
     def add_watchers(self, watchers: List[Dict[str, Any]]) -> Response:
         return self._watcher_query(method='PUT', data={'watchers': watchers})
 
-    @require_premium_user(active_check=False)
+    @require_loggedin_user()
     def edit_watchers(self, watchers: List[Dict[str, Any]]) -> Response:
         return self._watcher_query(method='PATCH', data={'watchers': watchers})
 
-    @require_premium_user(active_check=False)
+    @require_loggedin_user()
     def delete_watchers(self, watchers: List[str]) -> Response:
         return self._watcher_query(method='DELETE', data={'watchers': watchers})
 
@@ -2390,7 +2294,7 @@ class RestAPI():
                 addresses=[address] if address is not None else None,
                 from_ts=from_timestamp,
                 to_ts=to_timestamp,
-                with_limit=self.rotkehlchen.premium is None,
+                with_limit=False,  # No limits - premium restrictions removed
                 recent_first=True,
                 only_cache=only_cache,
             )
@@ -2416,7 +2320,7 @@ class RestAPI():
         result = {
             'entries': entries_result,
             'entries_found': self.rotkehlchen.data.db.get_entries_count('ethereum_transactions'),
-            'entries_limit': FREE_ETH_TX_LIMIT if self.rotkehlchen.premium is None else -1,
+            'entries_limit': -1,  # No limits - premium restrictions removed
         }
 
         return {'result': result, 'message': message, 'status_code': status_code}
@@ -2605,17 +2509,8 @@ class RestAPI():
         return api_response(_wrap_in_ok_result(response['result']), status_code=status_code)
 
     def _sync_data(self, action: Literal['upload', 'download']) -> Dict[str, Any]:
-        try:
-            success, msg = self.rotkehlchen.premium_sync_manager.sync_data(action)
-            if msg.startswith('Pulling failed'):
-                return wrap_in_fail_result(msg, status_code=HTTPStatus.BAD_GATEWAY)
-            return _wrap_in_result(success, message=msg)
-        except RemoteError as e:
-            return wrap_in_fail_result(str(e), status_code=HTTPStatus.BAD_GATEWAY)
-        except PremiumApiError as e:
-            return wrap_in_fail_result(str(e), status_code=HTTPStatus.BAD_GATEWAY)
-        except PremiumAuthenticationError as e:
-            return wrap_in_fail_result(str(e), status_code=HTTPStatus.UNAUTHORIZED)
+        # Premium sync functionality removed - data sync is no longer available
+        return _wrap_in_result(False, message="Data sync functionality has been removed as premium features are no longer available")
 
     def sync_data(
             self,

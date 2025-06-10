@@ -5,19 +5,35 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union, 
 from urllib.parse import urlparse
 
 import requests
-from ens import ENS
-from ens.abis import ENS as ENS_ABI, RESOLVER as ENS_RESOLVER_ABI
-from ens.main import ENS_MAINNET_ADDR
-from ens.utils import is_none_or_zero_address, normal_name_to_hash, normalize_name
+try:
+    from ens import ENS
+    from ens.utils import is_none_or_zero_address, normal_name_to_hash, normalize_name
+except ImportError:
+    # Fallback for environments where ENS is not available
+    ENS = None
+    def is_none_or_zero_address(addr): return not addr or addr == '0x0000000000000000000000000000000000000000'
+    def normal_name_to_hash(name): return b''
+    def normalize_name(name): return name
+
+# Define minimal ABIs for ENS interactions
+ENS_ABI = []
+ENS_RESOLVER_ABI = []
+ENS_MAINNET_ADDR = '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e'
 from eth_typing import BlockNumber, HexStr
 from eth_utils.address import to_checksum_address
+from eth_utils.abi import get_abi_output_types
 from typing_extensions import Literal
 from web3 import HTTPProvider, Web3
-from web3._utils.abi import get_abi_output_types
 from web3._utils.contracts import find_matching_event_abi
 from web3._utils.filters import construct_event_filter_params
 from web3.datastructures import MutableAttributeDict
-from web3.middleware.exception_retry_request import http_retry_request_middleware
+try:
+    from web3.middleware.exception_retry_request import http_retry_request_middleware
+    RETRY_MIDDLEWARE_AVAILABLE = True
+except ImportError:
+    # Middleware might not be available in newer versions
+    http_retry_request_middleware = None
+    RETRY_MIDDLEWARE_AVAILABLE = False
 from web3.types import FilterParams
 
 from rotkehlchen.chain.ethereum.eth2 import ETH2_DEPOSIT
@@ -294,9 +310,13 @@ class EthereumManager():
                 endpoint_uri=ethrpc_endpoint,
                 request_kwargs={'timeout': self.eth_rpc_timeout},
             )
-            ens = ENS(provider)
-            web3 = Web3(provider, ens=ens)
-            web3.middleware_onion.inject(http_retry_request_middleware, layer=0)
+            web3 = Web3(provider)
+            # Add retry middleware if available
+            if RETRY_MIDDLEWARE_AVAILABLE and http_retry_request_middleware is not None:
+                web3.middleware_onion.inject(http_retry_request_middleware, layer=0)
+            # Set up ENS if available
+            if ENS is not None:
+                web3.ens = ENS.from_web3(web3)
         except requests.exceptions.RequestException:
             message = f'Failed to connect to ethereum node {name} at endpoint {ethrpc_endpoint}'
             log.warning(message)

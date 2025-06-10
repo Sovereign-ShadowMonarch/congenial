@@ -12,7 +12,7 @@ from rotkehlchen.db.dbhandler import DBHandler
 from rotkehlchen.exchanges.manager import ExchangeManager
 from rotkehlchen.externalapis.cryptocompare import Cryptocompare
 from rotkehlchen.greenlets import GreenletManager
-from rotkehlchen.premium.sync import PremiumSyncManager
+# Premium functionality removed
 from rotkehlchen.typing import ChecksumEthAddress
 from rotkehlchen.utils.misc import ts_now
 
@@ -49,7 +49,7 @@ class TaskManager():
             api_task_greenlets: List[gevent.Greenlet],
             database: DBHandler,
             cryptocompare: Cryptocompare,
-            premium_sync_manager: PremiumSyncManager,
+            # premium_sync_manager removed
             chain_manager: ChainManager,
             exchange_manager: ExchangeManager,
     ) -> None:
@@ -59,7 +59,7 @@ class TaskManager():
         self.database = database
         self.cryptocompare = cryptocompare
         self.exchange_manager = exchange_manager
-        self.premium_sync_manager = premium_sync_manager
+        # premium sync manager removed
         self.cryptocompare_queries: Set[CCHistoQuery] = set()
         self.chain_manager = chain_manager
         self.last_xpub_derivation_ts = 0
@@ -75,7 +75,7 @@ class TaskManager():
 
         self.potential_tasks = [
             self._maybe_schedule_cryptocompare_query,
-            self.premium_sync_manager.maybe_upload_data_to_server,
+            # premium sync removed
             self._maybe_schedule_xpub_derivation,
             self._maybe_query_ethereum_transactions,
             self._maybe_schedule_exchange_history_query,

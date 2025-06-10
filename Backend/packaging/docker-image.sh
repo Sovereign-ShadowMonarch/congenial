@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 REVISION=$(git rev-parse HEAD)
-ROTKI_VERSION=$(cat .bumpversion.cfg | grep 'current_version = ' | sed -n -e 's/current_version = //p')
+BACKEND_VERSION=$(cat .bumpversion.cfg | grep 'current_version = ' | sed -n -e 's/current_version = //p')
 POSTFIX=$(if git describe --tags --exact-match "$REVISION" &>/dev/null; then echo ''; else echo '-dev'; fi)
-ROTKI_VERSION=${ROTKI_VERSION}${POSTFIX}
+BACKEND_VERSION=${BACKEND_VERSION}${POSTFIX}
 
-docker build -t rotki . --build-arg REVISION="$REVISION" --build-arg ROTKI_VERSION="$ROTKI_VERSION"
+docker build -t backend . --build-arg REVISION="$REVISION" --build-arg BACKEND_VERSION="$BACKEND_VERSION"

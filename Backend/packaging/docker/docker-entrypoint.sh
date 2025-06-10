@@ -1,32 +1,65 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
-exec /usr/sbin/rotki --api-port 4242 --data-dir /data/ --logfile /logs/rotki.log --api-cors http://localhost:8080 --api-host 0.0.0.0 &
+# Function to log with timestamp
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+}
 
-status=$?
-if [ $status -ne 0 ]; then
-  echo "Failed to start rotki: $status"
-  exit $status
-fi
+set -e
 
-nginx -g "daemon off;" &
+log "Starting Rotkehlchen backend container..."
 
-status=$?
-if [ $status -ne 0 ]; then
-  echo "Failed to start nginx: $status"
-  exit $status
-fi
+# Default values
+DEFAULT_API_HOST="0.0.0.0"
+DEFAULT_API_PORT="4242"
+DEFAULT_DATA_DIR="/data"
+DEFAULT_CORS_ORIGIN="http://localhost:3000"  # Changed from 8080 to 3000 (standard frontend port)
 
-echo "Service started"
+# Use environment variables if set, otherwise use defaults
+API_HOST="${API_HOST:-$DEFAULT_API_HOST}"
+API_PORT="${API_PORT:-$DEFAULT_API_PORT}"
+DATA_DIR="${DATA_DIR:-$DEFAULT_DATA_DIR}"
+CORS_ORIGIN="${CORS_ORIGIN:-$DEFAULT_CORS_ORIGIN}"
 
-while sleep 60; do
-  ps aux | grep "rotki" | grep -q -v grep
-  PROCESS_1_STATUS=$?
-  ps aux | grep "nginx: master" | grep -q -v grep
-  PROCESS_2_STATUS=$?
-  # If the greps above find anything, they exit with 0 status
-  # If they are not both 0, then something is wrong
-  if [ $PROCESS_1_STATUS -ne 0 -o $PROCESS_2_STATUS -ne 0 ]; then
-    echo "One of the processes has already exited."
+log "Configuration:"
+log "  API Host: $API_HOST"
+log "  API Port: $API_PORT"
+log "  Data Directory: $DATA_DIR"
+log "  CORS Origin: $CORS_ORIGIN"
+
+# Ensure data directory exists
+mkdir -p "$DATA_DIR"
+
+# Build the command
+CMD_ARGS=(
+    "--api-host" "$API_HOST"
+    "--api-port" "$API_PORT"
+    "--data-dir" "$DATA_DIR"
+    "--api-cors" "$CORS_ORIGIN"
+)
+
+log "Starting Rotkehlchen with arguments: ${CMD_ARGS[*]}"
+
+# Find and execute the PyInstaller-built application
+# The executable name pattern should match what's defined in rotkehlchen.spec (e.g., backend-*-linux)
+EXECUTABLE_NAME_PATTERN="backend-*"
+
+# Search for the executable in /opt/backend. 
+# It might be directly in /opt/backend or in a subdirectory if PyInstaller created one (e.g. /opt/backend/backend for non-ONEFILE builds)
+CANDIDATE_EXECUTABLE=$(find /opt/backend -name "${EXECUTABLE_NAME_PATTERN}" -type f -executable | head -n 1)
+
+if [ -z "$CANDIDATE_EXECUTABLE" ]; then
+    log "ERROR: Backend executable matching '${EXECUTABLE_NAME_PATTERN}' not found in /opt/backend or its subdirectories."
+    log "Contents of /opt/backend:"
+    ls -lA /opt/backend
+    if [ -d "/opt/backend/backend" ]; then
+        log "Contents of /opt/backend/backend:"
+        ls -lA /opt/backend/backend
+    fi
     exit 1
-  fi
-done
+fi
+
+log "Found backend executable: $CANDIDATE_EXECUTABLE"
+log "Executing $CANDIDATE_EXECUTABLE with arguments: ${CMD_ARGS[*]} $@"
+
+exec "$CANDIDATE_EXECUTABLE" "${CMD_ARGS[@]}" "$@"

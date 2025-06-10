@@ -71,7 +71,7 @@ from rotkehlchen.fval import FVal
 from rotkehlchen.greenlets import GreenletManager
 from rotkehlchen.inquirer import Inquirer
 from rotkehlchen.logging import RotkehlchenLogsAdapter
-from rotkehlchen.premium.premium import Premium
+# Premium functionality removed
 from rotkehlchen.serialization.deserialize import deserialize_ethereum_address
 from rotkehlchen.typing import (
     BTCAddress,
@@ -249,7 +249,7 @@ class ChainManager(CacheableObject, LockableQueryObject):
             msg_aggregator: MessagesAggregator,
             database: 'DBHandler',
             greenlet_manager: GreenletManager,
-            premium: Optional[Premium],
+            # premium removed
             data_directory: Path,
             beaconchain: 'BeaconChain',
             btc_derivation_gap_limit: int,
@@ -278,7 +278,7 @@ class ChainManager(CacheableObject, LockableQueryObject):
         self.balances = BlockchainBalances(db=database)
         # Per asset total balances
         self.totals: BalanceSheet = BalanceSheet()
-        self.premium = premium
+        # Premium functionality removed - always full access
         self.greenlet_manager = greenlet_manager
         # TODO: Turn this mapping into a typed dict once we upgrade to python 3.8
         self.eth_modules: Dict[ModuleName, Union[EthereumModule]] = {}
@@ -342,7 +342,7 @@ class ChainManager(CacheableObject, LockableQueryObject):
             instance = klass(  # type: ignore
                 ethereum_manager=self.ethereum,
                 database=self.database,
-                premium=self.premium,
+                premium=None,  # Premium functionality removed
                 msg_aggregator=self.msg_aggregator,
             )
         except ModuleInitializationFailure as e:
@@ -1081,7 +1081,7 @@ class ChainManager(CacheableObject, LockableQueryObject):
                 )
 
         adex_module = self.get_module('adex')
-        if adex_module is not None and self.premium is not None:
+        if adex_module is not None:  # Premium restrictions removed - always available
             adex_balances = adex_module.get_balances(addresses=self.accounts.eth)
             for address, pool_balances in adex_balances.items():
                 for pool_balance in pool_balances:

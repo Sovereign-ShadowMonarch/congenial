@@ -5,11 +5,14 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union, cast
 import gevent
 
 from rotkehlchen.accounting.events import TaxableEvents
-from rotkehlchen.accounting.structures import ActionType, DefiEvent, LedgerAction
+from rotkehlchen.accounting.structures import ActionType, DefiEvent, LedgerAction, Balance, BalanceSheet
+from rotkehlchen.assets.asset import Asset
 from rotkehlchen.assets.unknown_asset import UnknownEthereumToken
+from rotkehlchen.chain.ethereum.modules.uniswap.typing import AssetPrice
 from rotkehlchen.chain.ethereum.trades import AMMTrade
 from rotkehlchen.constants.assets import A_BTC, A_ETH
 from rotkehlchen.csv_exporter import CSVExporter
+from rotkehlchen.db.dbhandler import DBHandler
 from rotkehlchen.db.settings import DBSettings
 from rotkehlchen.errors import (
     NoPriceForGivenTimestamp,
@@ -27,10 +30,11 @@ from rotkehlchen.exchanges.data_structures import (
     TradeType,
 )
 from rotkehlchen.fval import FVal
-from rotkehlchen.history import PriceHistorian
+from rotkehlchen.globaldb.handler import GlobalDBHandler
+from rotkehlchen.history.price import PriceHistorian
 from rotkehlchen.inquirer import Inquirer
 from rotkehlchen.logging import RotkehlchenLogsAdapter
-from rotkehlchen.premium.premium import Premium
+# Premium functionality removed
 from rotkehlchen.typing import EthereumTransaction, Fee, Timestamp
 from rotkehlchen.user_messages import MessagesAggregator
 from rotkehlchen.utils.accounting import (
@@ -59,7 +63,7 @@ class Accountant():
             user_directory: Path,
             msg_aggregator: MessagesAggregator,
             create_csv: bool,
-            premium: Optional[Premium],
+            premium: None,  # Premium functionality removed
     ) -> None:
         self.db = db
         profit_currency = db.get_main_currency()
@@ -75,14 +79,15 @@ class Accountant():
         self.last_gas_price = 0
         self.currently_processing_timestamp = -1
         self.first_processed_timestamp = -1
-        self.premium = premium
+        # Premium functionality removed - always full access
 
     def __del__(self) -> None:
         del self.events
         del self.csvexporter
 
     def deactivate_premium_status(self) -> None:
-        self.premium = None
+        # Premium functionality removed
+        pass
 
     @property
     def general_trade_pl(self) -> FVal:
@@ -289,14 +294,15 @@ class Accountant():
         taxable events into account. Not where processing starts from. Processing
         always starts from the very first event we find in the history.
         """
-        active_premium = self.premium and self.premium.is_active()
+        # Premium functionality removed - always full access
+        active_premium = True  # Always True - premium restrictions removed
         log.info(
             'Start of history processing',
             start_ts=start_ts,
             end_ts=end_ts,
             active_premium=active_premium,
         )
-        events_limit = -1 if active_premium else FREE_PNL_EVENTS_LIMIT
+        events_limit = -1  # No limits - premium restrictions removed
         profit_currency = self.db.get_main_currency()
         self.events.reset(profit_currency=profit_currency, start_ts=start_ts, end_ts=end_ts)
         self.last_gas_price = 2000000000
@@ -398,13 +404,7 @@ class Accountant():
                 # API may time out
                 gevent.sleep(0.5)
             count += 1
-            if not active_premium and count > FREE_PNL_EVENTS_LIMIT:
-                log.debug(
-                    f'PnL reports event processing has hit the event limit of {events_limit}. '
-                    f'Processing stopped and the results will not '
-                    f'take into account subsequent events.',
-                )
-                break
+            # Premium limits removed - process all events
 
         Inquirer().save_historical_forex_data()
 

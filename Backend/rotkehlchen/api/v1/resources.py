@@ -69,7 +69,7 @@ from rotkehlchen.api.v1.encoding import (
     TradeSchema,
     UserActionSchema,
     UserPasswordChangeSchema,
-    UserPremiumSyncSchema,
+    # UserPremiumSyncSchema removed
     WatchersAddSchema,
     WatchersDeleteSchema,
     WatchersEditSchema,
@@ -629,15 +629,13 @@ class UsersResource(BaseResource):
             self,
             name: str,
             password: str,
-            premium_api_key: str,
-            premium_api_secret: str,
+            # premium parameters removed
             initial_settings: Optional[ModifiableDBSettings],
     ) -> Response:
         return self.rest_api.create_new_user(
             name=name,
             password=password,
-            premium_api_key=premium_api_key,
-            premium_api_secret=premium_api_secret,
+            # premium parameters removed
             initial_settings=initial_settings,
         )
 
@@ -652,16 +650,9 @@ class UsersByNameResource(BaseResource):
             name: str,
             password: Optional[str],
             sync_approval: Literal['yes', 'no', 'unknown'],
-            premium_api_key: str,
-            premium_api_secret: str,
+            # premium parameters removed
     ) -> Response:
-        if action is None:
-            return self.rest_api.user_set_premium_credentials(
-                name=name,
-                api_key=premium_api_key,
-                api_secret=premium_api_secret,
-            )
-
+        # Premium credential setting removed - only login/logout supported
         if action == 'login':
             assert password is not None, 'Marshmallow validation should not let password=None here'
             return self.rest_api.user_login(
@@ -691,18 +682,7 @@ class UserPasswordChangeResource(BaseResource):
         )
 
 
-class UserPremiumKeyResource(BaseResource):
-
-    def delete(self) -> Response:
-        return self.rest_api.user_premium_key_remove()
-
-
-class UserPremiumSyncResource(BaseResource):
-    put_schema = UserPremiumSyncSchema()
-
-    @use_kwargs(put_schema, location='json_and_view_args')  # type: ignore
-    def put(self, async_query: bool, action: Literal['upload', 'download']) -> Response:
-        return self.rest_api.sync_data(async_query, action)
+# Premium resource classes removed
 
 
 class StatisticsNetvalueResource(BaseResource):

@@ -4,8 +4,9 @@ from typing import Any, Dict, List, Optional, Union
 from unittest.mock import patch
 
 from eth_utils.address import to_checksum_address
+from eth_utils.abi import get_abi_output_types
 from web3 import Web3
-from web3._utils.abi import get_abi_input_types, get_abi_output_types
+from web3._utils.abi import get_abi_input_types
 
 from rotkehlchen.assets.asset import EthereumToken
 from rotkehlchen.chain.ethereum.defi.zerionsdk import ZERION_ADAPTER_ADDRESS

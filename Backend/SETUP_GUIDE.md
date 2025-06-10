@@ -100,10 +100,10 @@ You'll be prompted to create a new user. Enter your username and password. The p
 
 ## Step 5: Configure API Endpoints
 
-By default, the API server listens on `localhost:5042`. To adjust this or add CORS support for the frontend, you can use command-line arguments:
+By default, the API server listens on `localhost:4242`. To adjust this or add CORS support for the frontend, you can use command-line arguments:
 
 ```bash
-python -m rotkehlchen --api-cors="http://localhost:3000" --api-host="0.0.0.0" --api-port=5042
+python -m rotkehlchen --api-cors="http://localhost:3000" --api-host="0.0.0.0" --api-port=4242
 ```
 
 ## Troubleshooting
@@ -137,7 +137,7 @@ pip install gevent==21.1.2
 ps aux | grep rotkehlchen
 
 # Check if the port is in use
-lsof -i :5042
+lsof -i :4242
 ```
 
 #### Issue: Database Encryption Error
@@ -160,7 +160,7 @@ python -m rotkehlchen
 You can test if the API is working correctly by making a simple request to the version endpoint:
 
 ```bash
-curl http://localhost:5042/api/1/version
+curl http://localhost:4242/api/1/version
 ```
 
 You should receive a JSON response with the version information.

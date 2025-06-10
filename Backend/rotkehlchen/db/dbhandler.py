@@ -89,7 +89,7 @@ from rotkehlchen.exchanges.data_structures import AssetMovement, MarginPosition,
 from rotkehlchen.exchanges.manager import SUPPORTED_EXCHANGES
 from rotkehlchen.fval import FVal
 from rotkehlchen.logging import RotkehlchenLogsAdapter
-from rotkehlchen.premium.premium import PremiumCredentials
+# Premium functionality removed
 from rotkehlchen.serialization.deserialize import (
     deserialize_action_type_from_db,
     deserialize_asset_amount,
@@ -549,7 +549,7 @@ class DBHandler:
             return DEFAULT_PREMIUM_SHOULD_SYNC
         return str_to_bool(query[0][0])
 
-    def get_settings(self, have_premium: bool = False) -> DBSettings:
+    def get_settings(self, have_premium: bool = True) -> DBSettings:
         """Aggregates settings from DB and from the given args and returns the settings object"""
         cursor = self.conn.cursor()
         query = cursor.execute(
@@ -561,8 +561,8 @@ class DBHandler:
         for q in query:
             settings_dict[q[0]] = q[1]
 
-        # Also add the non-DB saved settings
-        settings_dict['have_premium'] = have_premium
+        # Always set have_premium to True - premium functionality removed
+        settings_dict['have_premium'] = True
 
         return db_settings_from_dict(settings_dict, self.msg_aggregator)
 
@@ -2901,55 +2901,7 @@ class DBHandler:
         self.conn.commit()
         return True, ''
 
-    def set_rotkehlchen_premium(self, credentials: PremiumCredentials) -> None:
-        """Save the rotki premium credentials in the DB"""
-        cursor = self.conn.cursor()
-        # We don't care about previous value so simple insert or replace should work
-        cursor.execute(
-            'INSERT OR REPLACE INTO user_credentials'
-            '(name, api_key, api_secret, passphrase) VALUES (?, ?, ?, ?)',
-            ('rotkehlchen', credentials.serialize_key(), credentials.serialize_secret(), None),
-        )
-        self.conn.commit()
-        # Do not update the last write here. If we are starting in a new machine
-        # then this write is mandatory and to sync with data from server we need
-        # an empty last write ts in that case
-        # self.update_last_write()
-
-    def del_rotkehlchen_premium(self) -> bool:
-        """Delete the rotki premium credentials in the DB for the logged-in user"""
-        try:
-            cursor = self.conn.cursor()
-            cursor.execute(
-                'DELETE FROM user_credentials WHERE name=?', ('rotkehlchen',),
-            )
-            self.conn.commit()
-        except sqlcipher.OperationalError as e:  # pylint: disable=no-member
-            log.error(f'Could not delete rotki premium keys: {str(e)}')
-            return False
-        return True
-
-    def get_rotkehlchen_premium(self) -> Optional[PremiumCredentials]:
-        cursor = self.conn.cursor()
-        result = cursor.execute(
-            'SELECT api_key, api_secret FROM user_credentials where name="rotkehlchen";',
-        )
-        result = result.fetchall()
-        if len(result) == 1:
-            try:
-                credentials = PremiumCredentials(
-                    given_api_key=result[0][0],
-                    given_api_secret=result[0][1],
-                )
-            except IncorrectApiKeyFormat:
-                self.msg_aggregator.add_error(
-                    'Incorrect Rotki API Key/Secret format found in the DB. Skipping ...',
-                )
-                return None
-
-            return credentials
-        # else
-        return None
+    # Premium credential methods removed
 
     def get_netvalue_data(self, from_ts: Timestamp) -> Tuple[List[str], List[str]]:
         """Get all entries of net value data from the DB"""

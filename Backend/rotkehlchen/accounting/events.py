@@ -10,12 +10,14 @@ from rotkehlchen.csv_exporter import CSVExporter
 from rotkehlchen.errors import NoPriceForGivenTimestamp, PriceQueryUnsupportedAsset
 from rotkehlchen.exchanges.data_structures import MarginPosition
 from rotkehlchen.fval import FVal
-from rotkehlchen.history import PriceHistorian
+from rotkehlchen.history.price import PriceHistorian
 from rotkehlchen.history.price import get_balance_asset_rate_at_time_zero_if_error
 from rotkehlchen.logging import RotkehlchenLogsAdapter
 from rotkehlchen.typing import Fee, Location, Timestamp
 from rotkehlchen.user_messages import MessagesAggregator
 from rotkehlchen.utils.misc import taxable_gain_for_sell, timestamp_to_date
+from rotkehlchen.chain.bitcoin.hdkey import HDKey
+from rotkehlchen.constants.assets import A_AMPL
 
 logger = logging.getLogger(__name__)
 log = RotkehlchenLogsAdapter(logger)

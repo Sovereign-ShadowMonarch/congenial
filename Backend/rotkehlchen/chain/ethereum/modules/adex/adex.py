@@ -28,7 +28,6 @@ from rotkehlchen.constants import YEAR_IN_SECONDS, ZERO
 from rotkehlchen.constants.assets import A_ADX, A_DAI, A_USD
 from rotkehlchen.errors import DeserializationError, ModuleInitializationFailure, RemoteError
 from rotkehlchen.fval import FVal
-from rotkehlchen.history import PriceHistorian
 from rotkehlchen.inquirer import Inquirer
 from rotkehlchen.logging import RotkehlchenLogsAdapter
 from rotkehlchen.premium.premium import Premium
@@ -1128,11 +1127,7 @@ class Adex(EthereumModule):
         # Update usd_value for all events
         for event in staking_events.get_all():  # type: ignore # event can have all types
             token = event.token if isinstance(event, ChannelWithdraw) else A_ADX
-            usd_price = PriceHistorian().query_historical_price(
-                from_asset=token,
-                to_asset=A_USD,
-                timestamp=event.timestamp,
-            )
+            usd_price = Inquirer().find_usd_price(token)
             event.value.usd_value = event.value.amount * usd_price
 
     def get_balances(

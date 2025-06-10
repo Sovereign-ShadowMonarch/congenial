@@ -1,0 +1,20 @@
+import logging
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Union
+
+import marshmallow
+import webargs
+from eth_utils import to_checksum_address
+from marshmallow import Schema, fields, post_load, validates_schema
+from marshmallow.exceptions import ValidationError
+from werkzeug.datastructures import FileStorage
+
+# Compatibility workaround for newer versions of webargs that don't have compat module
+# Define MARSHMALLOW_VERSION_INFO based on the installed marshmallow version
+try:
+    MARSHMALLOW_VERSION_INFO = tuple(int(x) for x in marshmallow.__version__.split('.') if x.isdigit())
+except AttributeError:
+    # Newer versions of marshmallow don't have __version__, assume v3+
+    MARSHMALLOW_VERSION_INFO = (3, 20, 0)
+
+from rotkehlchen.accounting.structures import ActionType, LedgerAction, LedgerActionType 

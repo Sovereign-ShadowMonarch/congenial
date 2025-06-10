@@ -3,6 +3,7 @@ import logging
 from http import HTTPStatus
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+import gevent
 import werkzeug
 from flask import Flask, Response
 from flask_cors import CORS
@@ -81,8 +82,7 @@ from rotkehlchen.api.v1.resources import (
     UniswapEventsHistoryResource,
     UniswapTradesHistoryResource,
     UserPasswordChangeResource,
-    UserPremiumKeyResource,
-    UserPremiumSyncResource,
+    # Premium resources removed
     UsersByNameResource,
     UsersResource,
     VersionResource,
@@ -106,8 +106,7 @@ URLS_V1: URLS = [
     ('/watchers', WatchersResource),
     ('/users/<string:name>', UsersByNameResource),
     ('/users/<string:name>/password', UserPasswordChangeResource),
-    ('/premium', UserPremiumKeyResource),
-    ('/premium/sync', UserPremiumSyncResource),
+    # Premium endpoints removed
     ('/settings', SettingsResource),
     ('/tasks/', AsyncTasksResource),
     ('/tasks/<int:task_id>', AsyncTasksResource, 'specific_async_tasks_resource'),
@@ -280,6 +279,7 @@ class APIServer():
 
         self.flask_app.errorhandler(HTTPStatus.NOT_FOUND)(endpoint_not_found)
         self.flask_app.register_error_handler(Exception, self.unhandled_exception)
+        self.greenlet = None
 
     @staticmethod
     def unhandled_exception(exception: Exception) -> Response:
@@ -290,12 +290,10 @@ class APIServer():
         )
         return api_response(wrap_in_fail_result(str(exception)), HTTPStatus.INTERNAL_SERVER_ERROR)
 
-    def run(self, host: str = '127.0.0.1', port: int = 5042, **kwargs: Any) -> None:
-        """This is only used for the data faker and not used in production"""
-        self.flask_app.run(host=host, port=port, **kwargs)
-
-    def start(self, host: str = '127.0.0.1', port: int = 5042) -> None:
-        """This is used to start the API server in production"""
+    def run(self, host: str = '127.0.0.1', port: int = 4242, **kwargs: Any) -> None:
+        """
+        Run the API server. This is a blocking call.
+        """
         wsgi_logger = logging.getLogger(__name__ + '.pywsgi')
         self.wsgiserver = WSGIServer(
             (host, port),
@@ -306,12 +304,19 @@ class APIServer():
         msg = f'Rotki API server is running at: {host}:{port}'
         print(msg)
         log.info(msg)
-        self.wsgiserver.start()
+        self.wsgiserver.serve_forever()
+
+    def start(self, host: str = '127.0.0.1', port: int = 4242) -> None:
+        """This is used to start the API server in production"""
+        self.greenlet = gevent.spawn(self.run, host=host, port=port)
 
     def stop(self, timeout: int = 5) -> None:
         """Stops the API server. If handlers are running after timeout they are killed"""
         if self.wsgiserver is not None:
             self.wsgiserver.stop(timeout)
             self.wsgiserver = None
+        
+        if self.greenlet is not None:
+            self.greenlet.kill()
 
         self.rest_api.stop()

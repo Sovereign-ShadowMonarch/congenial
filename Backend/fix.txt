@@ -1,0 +1,5 @@
+try:
+    MARSHMALLOW_VERSION_INFO = tuple(int(x) for x in marshmallow.__version__.split('.') if x.isdigit())
+except AttributeError:
+    # Newer versions of marshmallow don't have __version__, assume v3+
+    MARSHMALLOW_VERSION_INFO = (3, 20, 0)

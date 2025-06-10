@@ -1,54 +1,66 @@
+import itertools
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union, cast
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
 
+from rotkehlchen.accounting.structures import (
+    Balance,
+    DefiEvent,
+    LedgerAction,
+)
+from rotkehlchen.assets.asset import Asset
 from rotkehlchen.chain.ethereum.trades import AMMTRADE_LOCATION_NAMES, AMMTrade, AMMTradeLocations
+from rotkehlchen.constants.assets import A_USD
 from rotkehlchen.constants.misc import ZERO
-from rotkehlchen.db.ledger_actions import DBLedgerActions
+from rotkehlchen.constants.timing import QUERY_LIMIT_MULTIPLIER
+from rotkehlchen.db.dbhandler import DBHandler
 from rotkehlchen.errors import RemoteError
-from rotkehlchen.exchanges.data_structures import AssetMovement, Loan, MarginPosition, Trade
+from rotkehlchen.exchanges.data_structures import AssetMovement, MarginPosition, Trade
 from rotkehlchen.exchanges.manager import ExchangeManager
 from rotkehlchen.exchanges.poloniex import process_polo_loans
 from rotkehlchen.fval import FVal
+from rotkehlchen.history.price import PriceHistorian
 from rotkehlchen.logging import RotkehlchenLogsAdapter
+from rotkehlchen.premium.premium import Premium
 from rotkehlchen.typing import EthereumTransaction, Location, Timestamp
 from rotkehlchen.user_messages import MessagesAggregator
-from rotkehlchen.utils.accounting import action_get_timestamp
-from rotkehlchen.utils.misc import timestamp_to_date
-
-if TYPE_CHECKING:
-    from rotkehlchen.accounting.structures import DefiEvent, LedgerAction
-    from rotkehlchen.chain.manager import ChainManager
-    from rotkehlchen.db.dbhandler import DBHandler
+from rotkehlchen.utils.misc import ts_now, write_history_data_in_file
 
 logger = logging.getLogger(__name__)
 log = RotkehlchenLogsAdapter(logger)
 
+# Define constants
+FREE_LEDGER_ACTIONS_LIMIT = 250
+NUM_HISTORY_QUERY_STEPS_EXCL_EXCHANGES = 12
 
-# Number of steps excluding the connected exchanges. Current query steps:
-# eth transactions
-# ledger actions
-# external trades: balancer, uniswap
-# makerdao dsr
-# makerdao vaults
-# yearn vaults
-# compound
-# adex staking
-# aave lending
-# eth2
-# Please, update this number each time a history query step is either added or removed
-NUM_HISTORY_QUERY_STEPS_EXCL_EXCHANGES = 11
-FREE_LEDGER_ACTIONS_LIMIT = 50
+# Define local types
+NumericMetric = Dict[str, FVal]
+HistoryResult = Dict[str, Any]
 
-HistoryResult = Tuple[
-    str,
-    List[Union[Trade, MarginPosition, AMMTrade]],
-    List[Loan],
-    List[AssetMovement],
-    List[EthereumTransaction],
-    List['DefiEvent'],
-    List['LedgerAction'],
-]
+
+def action_get_timestamp(action: Union[Trade, MarginPosition, AssetMovement, LedgerAction]) -> Timestamp:
+    if isinstance(action, (Trade, MarginPosition, LedgerAction)):
+        metric_obj = action
+    elif isinstance(action, AssetMovement):
+        metric_obj = action
+    else:
+        raise ValueError(f'Unknown history action object {type(action)}')
+
+    return metric_obj.timestamp
+
+
+def action_get_type(
+        action: Union[Trade, MarginPosition, AssetMovement, LedgerAction],
+) -> str:
+    if isinstance(action, Trade):
+        return 'trade'
+    if isinstance(action, LedgerAction):
+        return 'ledger_action'
+    if isinstance(action, MarginPosition):
+        return 'margin_position'
+    if isinstance(action, AssetMovement):
+        return 'asset_movement'
+    raise ValueError(f'Unknown history action object {type(action)}')
 
 
 def limit_trade_list_to_period(
@@ -59,21 +71,44 @@ def limit_trade_list_to_period(
     """Accepts a SORTED by timestamp trades_list and returns a shortened version
     of that list limited to a specific time period"""
 
-    start_idx: Optional[int] = None
-    end_idx: Optional[int] = None
-    for idx, trade in enumerate(trades_list):
-        timestamp = action_get_timestamp(trade)
-        if start_idx is None and timestamp >= start_ts:
-            start_idx = idx
+    if not trades_list:
+        return []
 
-        if end_idx is None and timestamp > end_ts:
-            end_idx = idx if idx >= 1 else 0
-            break
+    if trades_list[0].timestamp >= start_ts:
+        # needs no trimming in the start
+        start_idx = 0
+    else:
+        # find the element to start
+        # bisect does not work here since we want to find the last element that is
+        # less than or equal to start_ts
+        for idx, trade in enumerate(trades_list):
+            if trade.timestamp >= start_ts:
+                start_idx = idx
+                break
+        else:
+            return []
 
-    return trades_list[start_idx:end_idx] if start_idx is not None else []
+    if trades_list[-1].timestamp <= end_ts:
+        # needs no trimming in the end
+        end_idx = len(trades_list)
+    else:
+        # find the element to end
+        for idx, trade in enumerate(trades_list[start_idx:]):
+            if trade.timestamp > end_ts:
+                end_idx = start_idx + idx
+                break
+        else:
+            # no element found greater than end_ts so we include the entire list from start_idx
+            end_idx = len(trades_list)
+
+    return trades_list[start_idx:end_idx]
 
 
 class EventsHistorian():
+    """Analyzes event history and returns information about various events.
+
+    Information about profit, loss, historical trades, events and so on.
+    """
 
     def __init__(
             self,
@@ -83,35 +118,29 @@ class EventsHistorian():
             exchange_manager: ExchangeManager,
             chain_manager: 'ChainManager',
     ) -> None:
-
-        self.msg_aggregator = msg_aggregator
-        self.user_directory = user_directory
         self.db = db
+        self.user_directory = user_directory
+        self.msg_aggregator = msg_aggregator
         self.exchange_manager = exchange_manager
         self.chain_manager = chain_manager
-        db_settings = self.db.get_settings()
-        self.dateformat = db_settings.date_display_format
-        self.datelocaltime = db_settings.display_date_in_localtime
+        self.processing_state_name = 'initializing'
+        self.progress = 0
+        self.processing_state_percentage = 0
         self._reset_variables()
 
     def timestamp_to_date(self, timestamp: Timestamp) -> str:
-        return timestamp_to_date(
-            timestamp,
-            formatstr=self.dateformat,
-            treat_as_local=self.datelocaltime,
-        )
+        return timestamp.strftime('%d/%m/%Y %H:%M:%S')
 
     def _reset_variables(self) -> None:
-        self.processing_state_name = 'Starting query of historical events'
-        self.progress = ZERO
-        db_settings = self.db.get_settings()
-        self.dateformat = db_settings.date_display_format
-        self.datelocaltime = db_settings.display_date_in_localtime
+        """Resets progress-related variables in case of consecutive calls.
+        """
+        self.processing_state_name = 'initializing'
+        self.progress = 0
+        self.processing_state_percentage = 0
 
     def _increase_progress(self, step: int, total_steps: int) -> int:
-        step += 1
-        self.progress = FVal(step / total_steps) * 100
-        return step
+        self.progress = step * 100 / total_steps
+        return step + 1
 
     def query_ledger_actions(
             self,
@@ -120,18 +149,16 @@ class EventsHistorian():
             to_ts: Optional[Timestamp],
             location: Optional[Location] = None,
     ) -> Tuple[List['LedgerAction'], int]:
-        """Queries the ledger actions from the DB and applies the free version limit
-
-        TODO: Since we always query all in one call, the limiting will work, but if we start
-        batch querying by time then we need to amend the logic of limiting here.
-        Would need to use the same logic we do with trades. Using db entries count
-        and count what all calls return and what is sums up to
+        """Queries all ledger actions either by location or throughout all locations
+        in the given range
         """
-        db = DBLedgerActions(self.db, self.msg_aggregator)
-        actions = db.get_ledger_actions(from_ts=from_ts, to_ts=to_ts, location=location)
+        actions = self.db.get_ledger_actions(
+            from_ts=from_ts,
+            to_ts=to_ts,
+            location=location,
+        )
         original_length = len(actions)
-        if has_premium is False:
-            actions = actions[:FREE_LEDGER_ACTIONS_LIMIT]
+        # Premium restrictions removed - always return all actions
 
         return actions, original_length
 
@@ -234,7 +261,7 @@ class EventsHistorian():
         for amm_location in AMMTradeLocations:
             amm_module_name = cast(AMMTRADE_LOCATION_NAMES, str(amm_location))
             amm_module = self.chain_manager.get_module(amm_module_name)
-            if has_premium and amm_module:
+            if amm_module:  # Premium restrictions removed - always available
                 self.processing_state_name = f'Querying {amm_module_name} trade history'
                 amm_module_trades = amm_module.get_trades(
                     addresses=self.chain_manager.queried_addresses_for_module(amm_module_name),
@@ -248,7 +275,7 @@ class EventsHistorian():
         # Include makerdao DSR gains
         defi_events = []
         makerdao_dsr = self.chain_manager.get_module('makerdao_dsr')
-        if makerdao_dsr and has_premium:
+        if makerdao_dsr:  # Premium restrictions removed - always available
             self.processing_state_name = 'Querying makerDAO DSR history'
             defi_events.extend(makerdao_dsr.get_history_events(
                 from_timestamp=Timestamp(0),  # we need to process all events from history start
@@ -258,7 +285,7 @@ class EventsHistorian():
 
         # Include makerdao vault events
         makerdao_vaults = self.chain_manager.get_module('makerdao_vaults')
-        if makerdao_vaults and has_premium:
+        if makerdao_vaults:  # Premium restrictions removed - always available
             self.processing_state_name = 'Querying makerDAO vaults history'
             defi_events.extend(makerdao_vaults.get_history_events(
                 from_timestamp=Timestamp(0),  # we need to process all events from history start
@@ -268,7 +295,7 @@ class EventsHistorian():
 
         # include yearn vault events
         yearn_vaults = self.chain_manager.get_module('yearn_vaults')
-        if yearn_vaults and has_premium:
+        if yearn_vaults:  # Premium restrictions removed - always available
             self.processing_state_name = 'Querying yearn vaults history'
             defi_events.extend(yearn_vaults.get_history_events(
                 from_timestamp=Timestamp(0),  # we need to process all events from history start
@@ -279,7 +306,7 @@ class EventsHistorian():
 
         # include compound events
         compound = self.chain_manager.get_module('compound')
-        if compound and has_premium:
+        if compound:  # Premium restrictions removed - always available
             self.processing_state_name = 'Querying compound history'
             defi_events.extend(compound.get_history_events(
                 from_timestamp=Timestamp(0),  # we need to process all events from history start
@@ -290,7 +317,7 @@ class EventsHistorian():
 
         # include adex events
         adex = self.chain_manager.get_module('adex')
-        if adex is not None and has_premium:
+        if adex is not None:  # Premium restrictions removed - always available
             self.processing_state_name = 'Querying adex staking history'
             defi_events.extend(adex.get_history_events(
                 from_timestamp=start_ts,
@@ -301,7 +328,7 @@ class EventsHistorian():
 
         # include aave events
         aave = self.chain_manager.get_module('aave')
-        if aave is not None and has_premium:
+        if aave is not None:  # Premium restrictions removed - always available
             self.processing_state_name = 'Querying aave history'
             defi_events.extend(aave.get_history_events(
                 from_timestamp=start_ts,
@@ -311,12 +338,12 @@ class EventsHistorian():
         self._increase_progress(step, total_steps)
 
         # include eth2 staking events
-        if has_premium:
-            self.processing_state_name = 'Querying ETH2 staking history'
-            defi_events.extend(self.chain_manager.get_eth2_history_events(
-                from_timestamp=start_ts,
-                to_timestamp=end_ts,
-            ))
+        # Premium restrictions removed - always include eth2 events
+        self.processing_state_name = 'Querying ETH2 staking history'
+        defi_events.extend(self.chain_manager.get_eth2_history_events(
+            from_timestamp=start_ts,
+            to_timestamp=end_ts,
+        ))
         self._increase_progress(step, total_steps)
 
         history.sort(key=action_get_timestamp)
@@ -328,4 +355,4 @@ class EventsHistorian():
             eth_transactions,
             defi_events,
             ledger_actions,
-        )
+        ) 

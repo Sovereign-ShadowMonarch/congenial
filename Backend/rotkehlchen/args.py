@@ -13,7 +13,7 @@ class CommandAction(argparse.Action):
             dest: str,
             **kwargs: Any,
     ) -> None:
-        super().__init__(option_strings, dest)
+        super().__init__(option_strings, dest, nargs=0, **kwargs)
 
     def __call__(
             self,
@@ -22,12 +22,7 @@ class CommandAction(argparse.Action):
             values: Union[str, Sequence[Any], None],
             option_string: str = None,
     ) -> None:
-        # Only command we have at the moment is version
-        if values != 'version':
-            parser.print_usage()
-            print(f'Unrecognized command: {values}.')
-            sys.exit(0)
-
+        # When --version is used, just print version and exit
         print(get_system_spec()['rotkehlchen'])
         sys.exit(0)
 
@@ -60,7 +55,7 @@ def app_args(prog: str, description: str) -> argparse.ArgumentParser:
         '--api-port',
         help='The port on which the rest API will run',
         type=int,
-        default=5042,
+        default=4242,
     )
     p.add_argument(
         '--api-cors',
@@ -99,9 +94,10 @@ def app_args(prog: str, description: str) -> argparse.ArgumentParser:
         action='store_true',
     )
     p.add_argument(
-        'version',
+        '--version',
         help='Shows the rotkehlchen version',
         action=CommandAction,
+        nargs=0,
     )
 
     return p

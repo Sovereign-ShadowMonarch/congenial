@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, NamedTuple, Optional, Sequenc
 from eth_typing.abi import Decodable
 from typing_extensions import Literal
 from web3 import Web3
-from web3._utils.abi import get_abi_output_types
+from eth_utils.abi import get_abi_output_types
 
 from rotkehlchen.typing import ChecksumEthAddress
 

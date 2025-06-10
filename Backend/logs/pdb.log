@@ -1,0 +1,3 @@
+> /app/rotkehlchen/__main__.py(1)<module>()
+-> from gevent import monkey  # isort:skip # noqa
+(Pdb) 
